@@ -7,7 +7,7 @@
     "prepare": "lefthook install",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
-    "format": "oxfmt --check",
+    "format": "oxfmt",
     "format:check": "oxfmt --check"
   },
   "devDependencies": {
