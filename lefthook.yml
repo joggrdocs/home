@@ -8,7 +8,7 @@ pre-commit:
   commands:
     format:
       glob: '**/*.{js,ts,tsx,jsx,json,jsonc,css,yaml,yml}'
-      exclude: 'node_modules/**'
+      exclude: '(node_modules/|\.claude/)'
       stage_fixed: true
       run: pnpm format {staged_files}
     lint:

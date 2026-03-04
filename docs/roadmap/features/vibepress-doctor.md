@@ -1,0 +1,19 @@
+# Vibepress Doctor
+
+**Status:** ![Approved](https://img.shields.io/badge/Approved-%23006B3F)
+
+## Summary
+
+Audits existing Vibepress configuration, patches gaps, removes stale content, and manages ongoing maintenance end to end.
+
+## Problem
+
+After initial Vibepress setup, documentation sites accumulate stale pages, broken links, and configuration drift that degrade the reader experience over time without a dedicated maintenance workflow.
+
+## Solution
+
+Vibepress Doctor continuously audits the Vibepress configuration, automatically patching gaps, removing stale content, and handling ongoing maintenance so documentation sites stay accurate and well-organized.
+
+## Impact
+
+Documentation sites remain reliable and up to date with minimal manual effort, ensuring readers always find current, trustworthy content.
