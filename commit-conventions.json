@@ -1,19 +1,4 @@
 {
-  "types": [
-    "feat",
-    "fix",
-    "docs",
-    "chore",
-    "ci",
-    "refactor",
-    "style"
-  ],
-  "scopes": [
-    "readme",
-    "labels",
-    "templates",
-    "workflows",
-    "community",
-    "deps"
-  ]
+  "types": ["feat", "fix", "docs", "chore", "ci", "refactor", "style"],
+  "scopes": ["readme", "labels", "templates", "workflows", "community", "deps"]
 }

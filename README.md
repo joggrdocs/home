@@ -18,11 +18,11 @@ Joggr automatically builds and maintains documentation by integrating with devel
 
 We maintain several open source packages under the [joggrdocs](https://github.com/joggrdocs) GitHub organization.
 
-| Package | Description | Links |
-| --- | --- | --- |
-| **kidd** | An opinionated CLI framework for Node.js. Convention over configuration, end-to-end type safety. | [GitHub](https://github.com/joggrdocs/kidd) |
-| **tempo** | Programmatically create Markdown documents. | [GitHub](https://github.com/joggrdocs/tempo) · [Docs](https://joggrdocs.github.io/tempo/) |
-| **fastify-prisma** | Fastify Prisma plugin to share the same PrismaClient across your entire server. | [GitHub](https://github.com/joggrdocs/fastify-prisma) · [npm](https://npmjs.com/@joggr/fastify-prisma) |
+| Package            | Description                                                                                      | Links                                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| **kidd**           | An opinionated CLI framework for Node.js. Convention over configuration, end-to-end type safety. | [GitHub](https://github.com/joggrdocs/kidd)                                                            |
+| **tempo**          | Programmatically create Markdown documents.                                                      | [GitHub](https://github.com/joggrdocs/tempo) · [Docs](https://joggrdocs.github.io/tempo/)              |
+| **fastify-prisma** | Fastify Prisma plugin to share the same PrismaClient across your entire server.                  | [GitHub](https://github.com/joggrdocs/fastify-prisma) · [npm](https://npmjs.com/@joggr/fastify-prisma) |
 
 ## Community
 

@@ -16,7 +16,7 @@ body:
     attributes:
       label: Location
       description: Where is the documentation that needs improvement?
-      placeholder: "e.g., README.md, docs/getting-started.md, or a URL"
+      placeholder: 'e.g., README.md, docs/getting-started.md, or a URL'
     validations:
       required: false
 

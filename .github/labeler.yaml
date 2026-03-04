@@ -4,49 +4,49 @@
 documentation:
   - changed-files:
       - any-glob-to-any-file:
-          - "docs/**"
-          - "**/*.md"
-          - ".github/ISSUE_TEMPLATE/**"
-          - ".github/DISCUSSION_TEMPLATE/**"
+          - 'docs/**'
+          - '**/*.md'
+          - '.github/ISSUE_TEMPLATE/**'
+          - '.github/DISCUSSION_TEMPLATE/**'
 
 bug:
   - changed-files:
       - any-glob-to-any-file:
-          - "**/*.patch"
+          - '**/*.patch'
 
-"product:cli":
+'product:cli':
   - changed-files:
       - any-glob-to-any-file:
-          - "cli/**"
-          - "packages/cli/**"
+          - 'cli/**'
+          - 'packages/cli/**'
 
-"product:sdk":
+'product:sdk':
   - changed-files:
       - any-glob-to-any-file:
-          - "sdk/**"
-          - "packages/sdk/**"
+          - 'sdk/**'
+          - 'packages/sdk/**'
 
-"product:api":
+'product:api':
   - changed-files:
       - any-glob-to-any-file:
-          - "api/**"
-          - "packages/api/**"
+          - 'api/**'
+          - 'packages/api/**'
 
-"product:mcp":
+'product:mcp':
   - changed-files:
       - any-glob-to-any-file:
-          - "mcp/**"
-          - "packages/mcp/**"
+          - 'mcp/**'
+          - 'packages/mcp/**'
 
-"product:integrations":
+'product:integrations':
   - changed-files:
       - any-glob-to-any-file:
-          - "integrations/**"
-          - "packages/integrations/**"
+          - 'integrations/**'
+          - 'packages/integrations/**'
 
-"product:console":
+'product:console':
   - changed-files:
       - any-glob-to-any-file:
-          - "console/**"
-          - "packages/console/**"
-          - "apps/console/**"
+          - 'console/**'
+          - 'packages/console/**'
+          - 'apps/console/**'
