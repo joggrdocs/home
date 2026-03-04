@@ -1,0 +1,30 @@
+name: Documentation Improvement
+description: Suggest improvements to documentation
+labels: [documentation, status:triage]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the documentation improvement needed.
+      placeholder: Describe the improvement...
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: Where is the documentation that needs improvement?
+      placeholder: "e.g., README.md, docs/getting-started.md, or a URL"
+    validations:
+      required: false
+
+  - type: textarea
+    id: suggested-changes
+    attributes:
+      label: Suggested Changes
+      description: Describe the changes you would like to see in the documentation.
+      placeholder: Describe the suggested changes...
+    validations:
+      required: true

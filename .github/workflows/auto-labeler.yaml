@@ -1,0 +1,26 @@
+# ---------------------------------------------------
+# Auto Labeler
+# ---------------------------------------------------
+# Automatically applies labels to pull requests based
+# on the files changed, using rules defined in
+# .github/labeler.yaml.
+# ---------------------------------------------------
+
+name: auto-labeler
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  labeler:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.draft }}
+    steps:
+      - uses: actions/labeler@v6
+        with:
+          configuration-path: .github/labeler.yaml

@@ -1,0 +1,52 @@
+# Configuration for actions/labeler
+# https://github.com/actions/labeler
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "**/*.md"
+          - ".github/ISSUE_TEMPLATE/**"
+          - ".github/DISCUSSION_TEMPLATE/**"
+
+bug:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.patch"
+
+"product:cli":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "cli/**"
+          - "packages/cli/**"
+
+"product:sdk":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "sdk/**"
+          - "packages/sdk/**"
+
+"product:api":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "api/**"
+          - "packages/api/**"
+
+"product:mcp":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "mcp/**"
+          - "packages/mcp/**"
+
+"product:integrations":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "integrations/**"
+          - "packages/integrations/**"
+
+"product:console":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "console/**"
+          - "packages/console/**"
+          - "apps/console/**"

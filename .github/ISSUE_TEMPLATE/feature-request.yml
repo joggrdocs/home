@@ -1,0 +1,55 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+labels: [enhancement, status:triage]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the feature or improvement.
+      placeholder: Describe the feature...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: product
+    attributes:
+      label: Product
+      description: Which Joggr product does this relate to?
+      options:
+        - Console
+        - API
+        - Integrations
+        - MCP
+        - CLI
+        - SDK
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Why do you need this? Describe the problem you are trying to solve.
+      placeholder: Explain your use case...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: If you have a specific solution in mind, describe it here.
+      placeholder: Describe your proposed solution...
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives-considered
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative solutions or features you have considered.
+      placeholder: Describe alternatives...
+    validations:
+      required: false

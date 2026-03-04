@@ -1,0 +1,20 @@
+title: "Questions and Support"
+labels: [question]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What do you need help with?
+      placeholder: Ask your question...
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Provide any additional context that might help others answer your question (environment, versions, what you have tried, etc.).
+      placeholder: Add context...
+    validations:
+      required: false

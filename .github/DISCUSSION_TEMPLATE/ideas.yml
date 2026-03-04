@@ -1,0 +1,20 @@
+title: "Ideas and Feature Requests"
+labels: [enhancement]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of your idea or feature request.
+      placeholder: Describe your idea...
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Explain why this idea would be useful and what problem it solves.
+      placeholder: Describe the use case...
+    validations:
+      required: true

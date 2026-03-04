@@ -1,0 +1,16 @@
+{
+  "name": "@joggr/code",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The public hub for Joggr — documentation, roadmap, and community.",
+  "scripts": {
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.0.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "laufen": "^1.1.0",
+    "lefthook": "^2.1.0"
+  },
+  "packageManager": "pnpm@10.25.0"
+}

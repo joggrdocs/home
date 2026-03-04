@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or Support
+    url: https://github.com/joggrdocs/code/discussions
+    about: Ask questions and get help from the community
+  - name: Security Vulnerability
+    url: https://github.com/joggrdocs/code/blob/main/SECURITY.md
+    about: Report security vulnerabilities responsibly
