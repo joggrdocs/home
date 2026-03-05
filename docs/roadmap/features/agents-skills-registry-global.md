@@ -1,5 +1,5 @@
 ---
-status: In progress
+status: In Progress
 issue:
 ---
 

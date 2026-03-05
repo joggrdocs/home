@@ -13,5 +13,5 @@
     "verbatimModuleSyntax": false,
     "noEmit": true
   },
-  "include": ["*.lauf.ts", "sync-roadmap.lauf.mts"]
+  "include": ["*.lauf.ts"]
 }

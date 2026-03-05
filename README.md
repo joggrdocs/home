@@ -1,28 +1,18 @@
 <div align="center">
 
-# Joggr
+<img src="./assets/banner.svg" alt="Joggr Banner" width="100%" />
 
-**Knowledge base built for devs and agents**
+**The context engineering toolkit for developing with AI agents.**
 
-[![License](https://img.shields.io/badge/license-proprietary-blue?style=flat-square)](./LICENSE.md)
-[![GitHub Stars](https://img.shields.io/github/stars/joggrdocs/code?style=flat-square)](https://github.com/joggrdocs/code/stargazers)
-[![GitHub Discussions](https://img.shields.io/github/discussions/joggrdocs/code?style=flat-square)](https://github.com/joggrdocs/code/discussions)
+[Discussions](https://github.com/joggrdocs/code/discussions) · [Issues](https://github.com/joggrdocs/code/issues) · [Roadmap](./ROADMAP.md)
 
 </div>
 
-Joggr automatically builds and maintains documentation by integrating with developer tools like GitHub, Slack, Jira, and Linear. It provides MCP integration for AI coding agents -- including Claude Code, Cursor, and Windsurf -- so your agents always have accurate, up-to-date context. Joggr eliminates context rot (stale docs that degrade AI accuracy) and reduces token waste.
+## Overview
+
+Joggr scans your repo, validates your AI agent setup, and keeps your standards docs and rules up to date -- so tools like Claude Code, Cursor, and Windsurf always have accurate context. It eliminates context rot, reduces token waste, and gives your agents the engineering context they need to ship correct code.
 
 **Learn more at [joggr.ai](https://www.joggr.ai)**.
-
-## Open Source
-
-We maintain several open source packages under the [joggrdocs](https://github.com/joggrdocs) GitHub organization.
-
-| Package            | Description                                                                                      | Links                                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| **kidd**           | An opinionated CLI framework for Node.js. Convention over configuration, end-to-end type safety. | [GitHub](https://github.com/joggrdocs/kidd)                                                            |
-| **tempo**          | Programmatically create Markdown documents.                                                      | [GitHub](https://github.com/joggrdocs/tempo) · [Docs](https://joggrdocs.github.io/tempo/)              |
-| **fastify-prisma** | Fastify Prisma plugin to share the same PrismaClient across your entire server.                  | [GitHub](https://github.com/joggrdocs/fastify-prisma) · [npm](https://npmjs.com/@joggr/fastify-prisma) |
 
 ## Community
 

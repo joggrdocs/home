@@ -39,7 +39,9 @@ interface ProjectStatusOption {
 
 function parseFrontmatter(raw: string): { frontmatter: Frontmatter; content: string } | null {
   const match = raw.match(FRONTMATTER_RE)
-  if (!match) {return null}
+  if (!match) {
+    return null
+  }
 
   const frontmatter = parseYaml(match[1]) as Frontmatter
   const content = raw.slice(match[0].length).replace(/^\n+/, '')
@@ -49,7 +51,9 @@ function parseFrontmatter(raw: string): { frontmatter: Frontmatter; content: str
 
 function updateFrontmatter(raw: string, updates: Partial<Frontmatter>): string {
   const match = raw.match(FRONTMATTER_RE)
-  if (!match) {return raw}
+  if (!match) {
+    return raw
+  }
 
   const frontmatter = { ...(parseYaml(match[1]) as Frontmatter), ...updates }
   const rest = raw.slice(match[0].length)
@@ -66,7 +70,9 @@ function buildIssueBody(content: string): { title: string; body: string } | null
   const lines = content.split('\n')
 
   const titleIdx = lines.findIndex((l) => /^#\s+/.test(l))
-  if (titleIdx === -1) {return null}
+  if (titleIdx === -1) {
+    return null
+  }
   const title = lines[titleIdx].replace(/^#\s+/, '').trim()
 
   const sections: string[][] = []
@@ -74,7 +80,9 @@ function buildIssueBody(content: string): { title: string; body: string } | null
 
   for (let i = titleIdx + 1; i < lines.length; i++) {
     if (/^##\s+/.test(lines[i])) {
-      if (sections.length >= MAX_BODY_SECTIONS) {break}
+      if (sections.length >= MAX_BODY_SECTIONS) {
+        break
+      }
       current = [lines[i]]
       sections.push(current)
     } else if (current) {
@@ -209,14 +217,16 @@ async function selectFromBatch(
     initialValues: features.map((f) => f.filename),
   })
 
-  if (err?.cancelled) {return []}
+  if (err?.cancelled) {
+    return []
+  }
 
   const selectedSet = new Set(selected)
   return features.filter((f) => selectedSet.has(f.filename))
 }
 
 export default lauf({
-  description: 'Syncs roadmap features to GitHub issues',
+  description: 'Syncs features to GitHub issues',
   args: {
     verbose: z.boolean().default(false).describe('Enable verbose logging'),
     'dry-run': z.boolean().default(false).describe('Preview without creating issues'),
@@ -329,11 +339,12 @@ export default lauf({
         try {
           const issue = await createGitHubIssue(feature.title, feature.body)
 
-          ctx.spinner.message(`Adding #${issue.number} to project...`)
-          await addToProject(issue.url, feature.frontmatter.status, statusOptions)
-
+          // Write frontmatter immediately so re-runs don't create duplicates
           const updated = updateFrontmatter(feature.raw, { issue: issue.number })
           await writeFile(feature.filepath, updated)
+
+          ctx.spinner.message(`Adding #${issue.number} to project...`)
+          await addToProject(issue.url, feature.frontmatter.status, statusOptions)
 
           const statusLabel = feature.frontmatter.status ? ` [${feature.frontmatter.status}]` : ''
           ctx.spinner.stop(`Created issue #${issue.number}${statusLabel} for "${feature.title}"`)

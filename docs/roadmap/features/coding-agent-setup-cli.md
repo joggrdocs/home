@@ -1,5 +1,5 @@
 ---
-status: Todo
+status: Planned
 issue:
 ---
 
