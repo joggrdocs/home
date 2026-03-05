@@ -45,11 +45,11 @@ pnpm exec lauf run project --verbose=true
 
 The project is configured in [`project.json`](../project.json). Key sections:
 
-| Section | Purpose |
-|---|---|
-| `project` | Owner, number, title, description, visibility |
-| `fields` | Custom field definitions and select options |
-| `views` | Expected board/table views and their layouts |
+| Section         | Purpose                                        |
+| --------------- | ---------------------------------------------- |
+| `project`       | Owner, number, title, description, visibility  |
+| `fields`        | Custom field definitions and select options    |
+| `views`         | Expected board/table views and their layouts   |
 | `statusMapping` | Maps feature file statuses to project statuses |
 
 ### `features` — Sync Features to GitHub Issues
@@ -94,10 +94,10 @@ Description of the solution.
 What users can expect after this ships.
 ```
 
-| Frontmatter Field | Description |
-|---|---|
-| `status` | Maps to a project status option (e.g. `Planned` -> `Todo`) |
-| `issue` | Left empty initially; populated with the issue number after creation |
+| Frontmatter Field | Description                                                          |
+| ----------------- | -------------------------------------------------------------------- |
+| `status`          | Maps to a project status option (e.g. `Planned` -> `Todo`)           |
+| `issue`           | Left empty initially; populated with the issue number after creation |
 
 Once an issue is created, the script writes the issue number back into the frontmatter so subsequent runs skip it.
 

@@ -1,6 +1,8 @@
 ---
 issue: 18
 status: Upcoming
+productArea:
+  - 📚 documentation
 ---
 
 # Documentation Doctor: Drift

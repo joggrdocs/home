@@ -1,6 +1,8 @@
 ---
 issue: 15
 status: Upcoming
+productArea:
+  - 🔌 context-integration
 ---
 
 # Context MCP: External

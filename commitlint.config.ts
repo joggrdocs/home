@@ -1,4 +1,4 @@
-import conventions from './commit-conventions.json' with { type: 'json' }
+import conventions from './.config/commit-conventions.json' with { type: 'json' }
 
 export default {
   extends: ['@commitlint/config-conventional'],

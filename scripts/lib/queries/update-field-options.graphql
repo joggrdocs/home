@@ -1,8 +1,5 @@
 mutation UpdateFieldOptions($fieldId: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
-  updateProjectV2Field(input: {
-    fieldId: $fieldId
-    singleSelectOptions: $options
-  }) {
+  updateProjectV2Field(input: { fieldId: $fieldId, singleSelectOptions: $options }) {
     projectV2Field {
       ... on ProjectV2SingleSelectField {
         id

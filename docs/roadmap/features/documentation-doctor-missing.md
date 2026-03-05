@@ -1,6 +1,8 @@
 ---
 issue: 19
 status: Upcoming
+productArea:
+  - 📚 documentation
 ---
 
 # Documentation Doctor: Missing

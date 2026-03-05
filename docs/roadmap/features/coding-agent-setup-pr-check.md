@@ -1,6 +1,8 @@
 ---
 status: Planned
 issue: 8
+productArea:
+  - 🔧 agent-setup
 ---
 
 # Coding Agent Setup PR Check

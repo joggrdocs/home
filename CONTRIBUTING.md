@@ -6,22 +6,22 @@ Thank you for your interest in contributing to Joggr. This repository serves as 
 
 ### Reporting Bugs
 
-If you encounter a bug in any Joggr product, please [open an issue](https://github.com/joggrdocs/code/issues/new?template=bug-report.yml) using the bug report template. Include as much detail as possible: steps to reproduce, expected behavior, and actual behavior.
+If you encounter a bug in any Joggr product, please [open an issue](https://github.com/joggrdocs/home/issues/new?template=bug-report.yml) using the bug report template. Include as much detail as possible: steps to reproduce, expected behavior, and actual behavior.
 
 ### Suggesting Features
 
 Have an idea for a new feature or improvement? You can:
 
-- [Open a feature request](https://github.com/joggrdocs/code/issues/new?template=feature-request.yml) using the feature request template
-- Start a conversation in [Discussions](https://github.com/joggrdocs/code/discussions) under the Ideas category
+- [Open a feature request](https://github.com/joggrdocs/home/issues/new?template=feature-request.yml) using the feature request template
+- Start a conversation in [Discussions](https://github.com/joggrdocs/home/discussions) under the Ideas category
 
 ### Improving Documentation
 
-Documentation improvements are always welcome. [Open a documentation issue](https://github.com/joggrdocs/code/issues/new?template=documentation.yml) to suggest changes or additions.
+Documentation improvements are always welcome. [Open a documentation issue](https://github.com/joggrdocs/home/issues/new?template=documentation.yml) to suggest changes or additions.
 
 ### Participating in Discussions
 
-Join our [GitHub Discussions](https://github.com/joggrdocs/code/discussions) to ask questions, share ideas, and connect with the Joggr community.
+Join our [GitHub Discussions](https://github.com/joggrdocs/home/discussions) to ask questions, share ideas, and connect with the Joggr community.
 
 ## Community Guidelines
 

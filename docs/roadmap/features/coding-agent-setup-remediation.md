@@ -1,6 +1,8 @@
 ---
 status: In progress
 issue: 9
+productArea:
+  - 🔧 agent-setup
 ---
 
 # Coding Agent Setup Remediation

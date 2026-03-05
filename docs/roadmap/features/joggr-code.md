@@ -1,6 +1,8 @@
 ---
 status: Idea
 issue: 28
+productArea:
+  - 🏗️ platform
 ---
 
 # Joggr Code

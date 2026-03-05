@@ -1,6 +1,8 @@
 ---
 issue: 10
 status: Upcoming
+productArea:
+  - 🛠️ developer-tools
 ---
 
 # Coding Agent Statusline

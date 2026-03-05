@@ -22,16 +22,16 @@ Build the perfect AI agent setup — automatically. Joggr creates custom coding 
 
 ## Roadmap
 
-Explore what we're building. Join the conversation on any feature.
+What we're actively working on right now:
 
 <!-- target:roadmap-table:start -->
-| Feature | Status | Discussion |
-| ------- | ------ | ---------- |
-| [Agent Harness](https://github.com/joggrdocs/home/discussions/2) | ![In Progress](https://img.shields.io/badge/In%20Progress-F59E0B?style=flat-square) | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/2) |
-| [Coding Agent Setup Doctor](https://github.com/joggrdocs/home/discussions/1) | ![Released](https://img.shields.io/badge/Released-047857?style=flat-square) | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/1) |
-| [Coding Agent Toolkit MCP (Serena)](https://github.com/joggrdocs/home/discussions/6) | ![Upcoming](https://img.shields.io/badge/Upcoming-3B82F6?style=flat-square) | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/6) |
-| [Coding Standards Generation](https://github.com/joggrdocs/home/discussions/12) | ![Planned](https://img.shields.io/badge/Planned-1D4ED8?style=flat-square) | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/12) |
-| [GG Workflow](https://github.com/joggrdocs/home/discussions/18) | ![Planned](https://img.shields.io/badge/Planned-1D4ED8?style=flat-square) | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/18) |
+
+| Feature                                                                      | Status                                                                              | Assignees                                                                                                                                                                  | View                                                                                                                |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| [Agent Harness](https://github.com/joggrdocs/home/issues/2)                  | ![In Progress](https://img.shields.io/badge/In%20Progress-F59E0B?style=flat-square) | <a href="https://github.com/zrosenbauer"><img src="https://github.com/zrosenbauer.png?size=48" width="24" height="24" alt="zrosenbauer" style="border-radius: 50%;" /></a> | [![View](https://img.shields.io/badge/View-8B5CF6?style=flat-square)](https://github.com/orgs/joggrdocs/projects/9) |
+| [Coding Agent Setup CLI](https://github.com/joggrdocs/home/issues/6)         | ![In Progress](https://img.shields.io/badge/In%20Progress-F59E0B?style=flat-square) | <a href="https://github.com/srosenbauer"><img src="https://github.com/srosenbauer.png?size=48" width="24" height="24" alt="srosenbauer" style="border-radius: 50%;" /></a> | [![View](https://img.shields.io/badge/View-8B5CF6?style=flat-square)](https://github.com/orgs/joggrdocs/projects/9) |
+| [Coding Agent Setup Remediation](https://github.com/joggrdocs/home/issues/9) | ![In Progress](https://img.shields.io/badge/In%20Progress-F59E0B?style=flat-square) | <a href="https://github.com/zrosenbauer"><img src="https://github.com/zrosenbauer.png?size=48" width="24" height="24" alt="zrosenbauer" style="border-radius: 50%;" /></a> | [![View](https://img.shields.io/badge/View-8B5CF6?style=flat-square)](https://github.com/orgs/joggrdocs/projects/9) |
+
 <!-- target:roadmap-table:end -->
 
 **[View full roadmap →](./docs/roadmap/overview.md)**

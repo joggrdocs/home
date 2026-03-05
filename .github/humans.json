@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "description": "List of team members who should not trigger external notifications",
+  "team": ["zrosenbauer", "srosenbauer"]
+}

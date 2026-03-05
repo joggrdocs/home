@@ -1,6 +1,8 @@
 ---
 issue: 3
 status: Upcoming
+productArea:
+  - ⚡ skills-agents
 ---
 
 # Agents & Skills Registry: Global

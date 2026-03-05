@@ -1,6 +1,8 @@
 ---
 status: Idea
 issue: 4
+productArea:
+  - ⚡ skills-agents
 ---
 
 # Agents & Skills Registry: Private

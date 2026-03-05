@@ -1,6 +1,8 @@
 ---
 status: Idea
 issue: 33
+productArea:
+  - 📚 documentation
 ---
 
 # Vibepress Setup

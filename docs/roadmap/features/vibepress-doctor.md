@@ -1,6 +1,8 @@
 ---
 status: Idea
 issue: 31
+productArea:
+  - 📚 documentation
 ---
 
 # Vibepress Doctor

@@ -7,12 +7,12 @@ pre-commit:
   parallel: true
   commands:
     format:
-      glob: '**/*.{js,ts,tsx,jsx,json,jsonc,css,yaml,yml}'
-      exclude: 'node_modules/**'
+      glob: "**/*.{js,ts,tsx,jsx,json,jsonc,css,yaml,yml}"
+      exclude: "node_modules/**"
       stage_fixed: true
       run: pnpm format {staged_files}
     lint:
-      glob: '**/*.{js,ts,tsx,jsx}'
-      exclude: 'node_modules/**'
+      glob: "**/*.{js,ts,tsx,jsx}"
+      exclude: "node_modules/**"
       stage_fixed: true
-      run: 'pnpm lint:fix --quiet {staged_files}'
+      run: "pnpm lint:fix --quiet {staged_files}"

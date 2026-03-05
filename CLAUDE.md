@@ -25,12 +25,12 @@ You are a strict functional programmer. You write pure, immutable, declarative T
 
 ## Tech Stack
 
-| Tool                                                   | Purpose                 | Docs                                                |
-| ------------------------------------------------------ | ----------------------- | --------------------------------------------------- |
-| [laufen](https://github.com/joggrdocs/laufen)         | GitHub Projects as code | [GitHub](https://github.com/joggrdocs/laufen)       |
-| [OXC](https://oxc.rs) (oxlint, oxfmt)                 | Linting & formatting    | [llms.txt](https://oxc.rs/llms.txt)                 |
-| [Lefthook](https://github.com/evilmartians/lefthook)  | Git hooks               | [GitHub](https://github.com/evilmartians/lefthook)  |
-| [commitlint](https://commitlint.js.org/)              | Commit message linting  | [Docs](https://commitlint.js.org/)                  |
+| Tool                                                 | Purpose                 | Docs                                               |
+| ---------------------------------------------------- | ----------------------- | -------------------------------------------------- |
+| [laufen](https://github.com/joggrdocs/laufen)        | GitHub Projects as code | [GitHub](https://github.com/joggrdocs/laufen)      |
+| [OXC](https://oxc.rs) (oxlint, oxfmt)                | Linting & formatting    | [llms.txt](https://oxc.rs/llms.txt)                |
+| [Lefthook](https://github.com/evilmartians/lefthook) | Git hooks               | [GitHub](https://github.com/evilmartians/lefthook) |
+| [commitlint](https://commitlint.js.org/)             | Commit message linting  | [Docs](https://commitlint.js.org/)                 |
 
 ## Commands
 

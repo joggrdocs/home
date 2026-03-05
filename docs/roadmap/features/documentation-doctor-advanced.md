@@ -1,6 +1,8 @@
 ---
 status: Idea
 issue: 17
+productArea:
+  - 📚 documentation
 ---
 
 # Documentation Doctor: Advanced

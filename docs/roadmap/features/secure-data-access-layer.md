@@ -1,6 +1,8 @@
 ---
 issue: 30
 status: Upcoming
+productArea:
+  - 🔌 context-integration
 ---
 
 # Secure Data Access Layer (unmcp)

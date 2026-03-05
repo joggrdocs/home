@@ -2,6 +2,8 @@
 status: Planned
 issue: 12
 discussion: 12
+productArea:
+  - 📏 coding-standards
 ---
 
 # Coding Standards Generation

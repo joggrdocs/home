@@ -9,17 +9,29 @@ query ListProjectViews($owner: String!, $number: Int!) {
           filter
           groupByFields(first: 10) {
             nodes {
-              ... on ProjectV2Field { name }
-              ... on ProjectV2SingleSelectField { name }
-              ... on ProjectV2IterationField { name }
+              ... on ProjectV2Field {
+                name
+              }
+              ... on ProjectV2SingleSelectField {
+                name
+              }
+              ... on ProjectV2IterationField {
+                name
+              }
             }
           }
           sortByFields(first: 10) {
             nodes {
               field {
-                ... on ProjectV2Field { name }
-                ... on ProjectV2SingleSelectField { name }
-                ... on ProjectV2IterationField { name }
+                ... on ProjectV2Field {
+                  name
+                }
+                ... on ProjectV2SingleSelectField {
+                  name
+                }
+                ... on ProjectV2IterationField {
+                  name
+                }
               }
               direction
             }

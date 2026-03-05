@@ -1,17 +1,17 @@
-import { copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { copyFile, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 
-import { lauf, z } from 'laufen'
-import { parse as parseYaml } from 'yaml'
+import { lauf, z } from "laufen";
+import { parse as parseYaml } from "yaml";
 
-import type { ProjectItem } from './lib/github-client.js'
-import { createGitHubClient } from './lib/github-client.js'
+import type { ProjectItem } from "./lib/github-client.js";
+import { createGitHubClient } from "./lib/github-client.js";
 
-const README_PATH = 'README.md'
-const FEATURES_DIR = 'docs/roadmap/features'
-const TARGET_START = '<!-- target:roadmap-table:start -->'
-const TARGET_END = '<!-- target:roadmap-table:end -->'
-const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---/
+const README_PATH = "README.md";
+const FEATURES_DIR = "docs/roadmap/features";
+const TARGET_START = "<!-- target:roadmap-table:start -->";
+const TARGET_END = "<!-- target:roadmap-table:end -->";
+const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---/;
 
 // ---------------------------------------------------------------------------
 // Types
@@ -19,177 +19,226 @@ const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---/
 
 interface ProjectConfig {
   readonly project: {
-    readonly owner: string
-    readonly number: number
-  }
-  readonly statusMapping: Record<string, string>
+    readonly owner: string;
+    readonly repo: string;
+    readonly number: number;
+  };
+  readonly statusMapping: Record<string, string>;
 }
 
 interface FeatureFrontmatter {
-  readonly status?: string
-  readonly issue?: number
-  readonly discussion?: number
+  readonly status?: string;
+  readonly issue?: number;
+  readonly discussion?: number;
 }
 
 interface FeatureFile {
-  readonly title: string
-  readonly issueNumber: number
-  readonly discussionNumber: number
-  readonly filename: string
+  readonly title: string;
+  readonly issueNumber: number;
+  readonly filename: string;
+}
+
+interface Assignee {
+  readonly login: string;
+  readonly avatarUrl: string;
+  readonly profileUrl: string;
 }
 
 interface RoadmapItem {
-  readonly title: string
-  readonly status: string
-  readonly discussionNumber: number
-  readonly issueNumber: number
+  readonly title: string;
+  readonly status: string;
+  readonly issueNumber: number;
+  readonly projectItemId: string;
+  readonly assignees: readonly Assignee[];
 }
 
 interface StatusBadge {
-  readonly label: string
-  readonly color: string
+  readonly label: string;
+  readonly color: string;
 }
 
 // ---------------------------------------------------------------------------
-// Exports
+// Script
 // ---------------------------------------------------------------------------
 
 export default lauf({
-  description: 'Updates README.md roadmap table from GitHub Projects',
+  description: "Updates README.md roadmap table from GitHub Projects",
   args: {
-    verbose: z.boolean().default(false).describe('Enable verbose logging'),
-    'dry-run': z.boolean().default(false).describe('Preview changes without writing'),
+    verbose: z.boolean().default(false).describe("Enable verbose logging"),
+    "dry-run": z.boolean().default(false).describe("Preview changes without writing"),
+    yes: z.boolean().default(false).describe("Skip confirmation prompt"),
+    y: z.boolean().default(false).describe("Skip confirmation prompt (alias)"),
   },
   async run(ctx) {
     // Step 1: Read project config
-    ctx.spinner.start('Reading project config...')
-    const [configError, config] = await readProjectConfig(ctx.root)
+    ctx.spinner.start("Reading project config...");
+    const [configError, config] = await readProjectConfig(ctx.root);
     if (configError) {
-      ctx.spinner.stop()
-      ctx.logger.error(`Failed to read config: ${configError.message}`)
-      return 1
+      ctx.spinner.stop();
+      ctx.logger.error(`Failed to read config: ${configError.message}`);
+      return 1;
     }
-    ctx.spinner.stop(`Read config for project #${config.project.number}`)
+    ctx.spinner.stop(`Read config for project #${config.project.number}`);
 
     // Step 2: Read feature files
-    ctx.spinner.start('Reading feature files...')
-    const featuresPath = join(ctx.root, FEATURES_DIR)
-    const [featuresError, features] = await readFeatureFiles(featuresPath)
+    ctx.spinner.start("Reading feature files...");
+    const featuresPath = join(ctx.root, FEATURES_DIR);
+    const [featuresError, features] = await readFeatureFiles(featuresPath);
     if (featuresError) {
-      ctx.spinner.stop()
-      ctx.logger.error(`Failed to read features: ${featuresError.message}`)
-      return 1
+      ctx.spinner.stop();
+      ctx.logger.error(`Failed to read features: ${featuresError.message}`);
+      return 1;
     }
-    ctx.spinner.stop(`Read ${features.length} feature file(s)`)
+    ctx.spinner.stop(`Read ${features.length} feature file(s)`);
 
     if (features.length === 0) {
-      ctx.logger.warn('No feature files found')
-      return 0
+      ctx.logger.warn("No feature files found");
+      return 0;
     }
 
     // Step 3: Initialize GitHub client
-    ctx.spinner.start('Initializing GitHub client...')
-    const [clientError, github] = await createGitHubClient()
+    ctx.spinner.start("Initializing GitHub client...");
+    const [clientError, github] = await createGitHubClient({ packageDir: ctx.packageDir });
     if (clientError) {
-      ctx.spinner.stop()
-      ctx.logger.error(`Failed to create GitHub client: ${clientError.message}`)
-      return 1
+      ctx.spinner.stop();
+      ctx.logger.error(`Failed to create GitHub client: ${clientError.message}`);
+      return 1;
     }
-    ctx.spinner.stop('GitHub client ready')
+    ctx.spinner.stop("GitHub client ready");
 
-    // Step 4: Fetch project items with live status
-    ctx.spinner.start('Fetching live status from GitHub Projects...')
+    // Step 4: Fetch project views
+    ctx.spinner.start("Fetching project views...");
+    const [viewsError, views] = await github.projects.views.list({
+      owner: config.project.owner,
+      number: config.project.number,
+    });
+    if (viewsError) {
+      ctx.spinner.stop();
+      ctx.logger.error(`Failed to fetch project views: ${viewsError.message}`);
+      return 1;
+    }
+    if (views.length === 0) {
+      ctx.spinner.stop();
+      ctx.logger.error("No project views found");
+      return 1;
+    }
+    const firstView = views[0];
+    ctx.spinner.stop(`Found ${views.length} view(s), using "${firstView.name}"`);
+
+    // Step 5: Fetch project items with live status
+    ctx.spinner.start("Fetching live status from GitHub Projects...");
     const [itemsError, projectItems] = await github.projects.items.list({
       owner: config.project.owner,
       number: config.project.number,
-    })
+    });
     if (itemsError) {
-      ctx.spinner.stop()
-      ctx.logger.error(`Failed to fetch project items: ${itemsError.message}`)
-      return 1
+      ctx.spinner.stop();
+      ctx.logger.error(`Failed to fetch project items: ${itemsError.message}`);
+      return 1;
     }
-    ctx.spinner.stop(`Fetched ${projectItems.length} project item(s)`)
+    ctx.spinner.stop(`Fetched ${projectItems.length} project item(s)`);
 
-    // Step 5: Match features with live status
-    ctx.spinner.start('Matching features with live status...')
-    const [matchError, roadmapItems] = matchFeaturesWithStatus({
+    // Step 6: Match features with live status
+    ctx.spinner.start("Matching features with live status...");
+    const [matchError, roadmapItems] = await matchFeaturesWithStatus({
       features,
       projectItems,
       statusMapping: config.statusMapping,
+      github,
       verbose: ctx.args.verbose,
       logger: ctx.logger,
-    })
+    });
     if (matchError) {
-      ctx.spinner.stop()
-      ctx.logger.error(`Failed to match features: ${matchError.message}`)
-      return 1
+      ctx.spinner.stop();
+      ctx.logger.error(`Failed to match features: ${matchError.message}`);
+      return 1;
     }
-    ctx.spinner.stop(`Matched ${roadmapItems.length} roadmap item(s)`)
+    ctx.spinner.stop(`Matched ${roadmapItems.length} roadmap item(s)`);
 
     if (roadmapItems.length === 0) {
-      ctx.logger.warn('No roadmap items to display')
-      return 0
+      ctx.logger.warn("No roadmap items to display");
+      return 0;
     }
 
-    // Step 6: Build markdown table
-    const table = buildMarkdownTable(roadmapItems)
+    // Step 7: Build markdown table
+    const table = buildMarkdownTable(
+      roadmapItems,
+      config.project.owner,
+      config.project.repo,
+      config.project.number,
+      firstView.id,
+    );
 
     if (ctx.args.verbose) {
-      ctx.logger.newlines()
-      ctx.logger.info('Generated table:')
-      ctx.logger.message(table)
-      ctx.logger.newlines()
+      ctx.logger.newlines();
+      ctx.logger.info("Generated table:");
+      ctx.logger.message(table);
+      ctx.logger.newlines();
     }
 
-    // Step 7: Update README
-    ctx.spinner.start('Reading README.md...')
-    const readmePath = join(ctx.root, README_PATH)
-    const [readError, readme] = await readReadme(readmePath)
+    // Step 8: Update README
+    ctx.spinner.start("Reading README.md...");
+    const readmePath = join(ctx.root, README_PATH);
+    const [readError, readme] = await readReadme(readmePath);
     if (readError) {
-      ctx.spinner.stop()
-      ctx.logger.error(`Failed to read README: ${readError.message}`)
-      return 1
+      ctx.spinner.stop();
+      ctx.logger.error(`Failed to read README: ${readError.message}`);
+      return 1;
     }
-    ctx.spinner.stop('README.md loaded')
+    ctx.spinner.stop("README.md loaded");
 
-    const [replaceError, updatedReadme] = replaceTableContent(readme, table)
+    const [replaceError, updatedReadme] = replaceTableContent(readme, table);
     if (replaceError) {
-      ctx.logger.error(`Failed to replace table: ${replaceError.message}`)
-      return 1
+      ctx.logger.error(`Failed to replace table: ${replaceError.message}`);
+      return 1;
     }
 
-    if (readme === updatedReadme) {
-      ctx.logger.success('README.md is already up to date')
-      return 0
+    if (readme.trim() === updatedReadme.trim()) {
+      ctx.logger.success("README.md is already up to date");
+      return 0;
     }
 
-    if (ctx.args['dry-run']) {
-      ctx.logger.warn('Dry run: no changes applied')
-      return 0
+    if (ctx.args["dry-run"]) {
+      ctx.logger.warn("Dry run: no changes applied");
+      return 0;
     }
 
-    ctx.spinner.start('Creating backup...')
-    const [backupError, backupPath] = await backupReadme(ctx.root)
+    const skipConfirmation = ctx.args.yes || ctx.args.y;
+
+    if (!skipConfirmation) {
+      const [confirmErr, confirmed] = await ctx.prompts.confirm({
+        message: `Update README.md with ${roadmapItems.length} item(s)?`,
+        initialValue: true,
+      });
+
+      if (confirmErr?.cancelled || !confirmed) {
+        ctx.logger.warn("Cancelled by user");
+        return 1;
+      }
+    }
+
+    ctx.spinner.start("Creating backup...");
+    const [backupError, backupPath] = await backupReadme(ctx.root);
     if (backupError) {
-      ctx.spinner.stop()
-      ctx.logger.error(`Failed to create backup: ${backupError.message}`)
-      return 1
+      ctx.spinner.stop();
+      ctx.logger.error(`Failed to create backup: ${backupError.message}`);
+      return 1;
     }
-    ctx.spinner.stop(`Backup created at ${backupPath}`)
+    ctx.spinner.stop(`Backup created at ${backupPath}`);
 
-    ctx.spinner.start('Writing README.md...')
-    const [writeError] = await writeReadme(readmePath, updatedReadme)
+    ctx.spinner.start("Writing README.md...");
+    const [writeError] = await writeReadme(readmePath, updatedReadme);
     if (writeError) {
-      ctx.spinner.stop()
-      ctx.logger.error(`Failed to write README: ${writeError.message}`)
-      return 1
+      ctx.spinner.stop();
+      ctx.logger.error(`Failed to write README: ${writeError.message}`);
+      return 1;
     }
-    ctx.spinner.stop('README.md updated')
+    ctx.spinner.stop("README.md updated");
 
-    ctx.logger.success(`Updated roadmap table with ${roadmapItems.length} item(s)`)
-    return 0
+    ctx.logger.success(`Updated roadmap table with ${roadmapItems.length} item(s)`);
+    return 0;
   },
-})
+});
 
 // ---------------------------------------------------------------------------
 // Private
@@ -202,24 +251,25 @@ export default lauf({
  */
 async function readProjectConfig(root: string): Promise<[Error, null] | [null, ProjectConfig]> {
   try {
-    const raw = await readFile(join(root, 'project.json'), 'utf-8')
+    const raw = await readFile(join(root, "project.json"), "utf-8");
     const parsed = JSON.parse(raw) as {
-      project: { owner: string; number: number }
-      statusMapping: Record<string, string>
-    }
+      project: { owner: string; repo: string; number: number };
+      statusMapping: Record<string, string>;
+    };
     return [
       null,
       {
         project: {
           owner: parsed.project.owner,
+          repo: parsed.project.repo,
           number: parsed.project.number,
         },
         statusMapping: parsed.statusMapping ?? {},
       },
-    ]
+    ];
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return [new Error(`Failed to read project.json: ${message}`), null]
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return [new Error(`Failed to read project.json: ${message}`), null];
   }
 }
 
@@ -229,47 +279,46 @@ async function readProjectConfig(root: string): Promise<[Error, null] | [null, P
  * @private
  */
 async function readFeatureFiles(
-  featuresPath: string
+  featuresPath: string,
 ): Promise<[Error, null] | [null, readonly FeatureFile[]]> {
   try {
-    const files = await readdir(featuresPath)
-    const mdFiles = files.filter((f) => f.endsWith('.md'))
+    const files = await readdir(featuresPath);
+    const mdFiles = files.filter((f) => f.endsWith(".md"));
 
-    const features: FeatureFile[] = []
+    const features: FeatureFile[] = [];
 
     for (const filename of mdFiles) {
-      const filepath = join(featuresPath, filename)
+      const filepath = join(featuresPath, filename);
       // eslint-disable-next-line no-await-in-loop
-      const raw = await readFile(filepath, 'utf-8')
+      const raw = await readFile(filepath, "utf-8");
 
-      const parsed = parseFrontmatter(raw)
+      const parsed = parseFrontmatter(raw);
       if (!parsed) {
-        continue
+        continue;
       }
 
-      const { frontmatter, content } = parsed
+      const { frontmatter, content } = parsed;
 
-      if (!frontmatter.issue || !frontmatter.discussion) {
-        continue
+      if (!frontmatter.issue) {
+        continue;
       }
 
-      const title = extractTitle(content)
+      const title = extractTitle(content);
       if (!title) {
-        continue
+        continue;
       }
 
       features.push({
         title,
         issueNumber: frontmatter.issue,
-        discussionNumber: frontmatter.discussion,
         filename,
-      })
+      });
     }
 
-    return [null, features]
+    return [null, features];
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return [new Error(`Failed to read feature files: ${message}`), null]
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return [new Error(`Failed to read feature files: ${message}`), null];
   }
 }
 
@@ -279,17 +328,17 @@ async function readFeatureFiles(
  * @private
  */
 function parseFrontmatter(
-  raw: string
+  raw: string,
 ): { frontmatter: FeatureFrontmatter; content: string } | null {
-  const match = raw.match(FRONTMATTER_RE)
+  const match = raw.match(FRONTMATTER_RE);
   if (!match) {
-    return null
+    return null;
   }
 
-  const frontmatter = parseYaml(match[1]) as FeatureFrontmatter
-  const content = raw.slice(match[0].length).replace(/^\n+/, '')
+  const frontmatter = parseYaml(match[1]) as FeatureFrontmatter;
+  const content = raw.slice(match[0].length).replace(/^\n+/, "");
 
-  return { frontmatter, content }
+  return { frontmatter, content };
 }
 
 /**
@@ -298,11 +347,11 @@ function parseFrontmatter(
  * @private
  */
 function extractTitle(content: string): string | null {
-  const match = content.match(/^#\s+(.+)$/m)
+  const match = content.match(/^#\s+(.+)$/m);
   if (!match) {
-    return null
+    return null;
   }
-  return match[1].trim()
+  return match[1].trim();
 }
 
 /**
@@ -310,54 +359,78 @@ function extractTitle(content: string): string | null {
  *
  * @private
  */
-function matchFeaturesWithStatus(params: {
-  readonly features: readonly FeatureFile[]
-  readonly projectItems: readonly ProjectItem[]
-  readonly statusMapping: Record<string, string>
-  readonly verbose: boolean
-  readonly logger: { info: (msg: string) => void }
-}): [Error, null] | [null, readonly RoadmapItem[]] {
-  const { features, projectItems, statusMapping, verbose, logger } = params
+async function matchFeaturesWithStatus(params: {
+  readonly features: readonly FeatureFile[];
+  readonly projectItems: readonly ProjectItem[];
+  readonly statusMapping: Record<string, string>;
+  readonly github: Awaited<ReturnType<typeof createGitHubClient>>[1];
+  readonly verbose: boolean;
+  readonly logger: { info: (msg: string) => void };
+}): Promise<[Error, null] | [null, readonly RoadmapItem[]]> {
+  const { features, projectItems, statusMapping, github, verbose, logger } = params;
 
-  const reverseMapping = reverseStatusMapping(statusMapping)
-  const itemsByIssue = new Map<number, ProjectItem>()
+  if (!github) {
+    return [new Error("GitHub client not initialized"), null];
+  }
+
+  const reverseMapping = reverseStatusMapping(statusMapping);
+  const itemsByIssue = new Map<number, ProjectItem>();
 
   for (const item of projectItems) {
     if (item.content.number) {
-      itemsByIssue.set(item.content.number, item)
+      itemsByIssue.set(item.content.number, item);
     }
   }
 
-  const roadmapItems: RoadmapItem[] = []
+  const roadmapItems: RoadmapItem[] = [];
 
   for (const feature of features) {
-    const projectItem = itemsByIssue.get(feature.issueNumber)
+    const projectItem = itemsByIssue.get(feature.issueNumber);
     if (!projectItem) {
       if (verbose) {
-        logger.info(`Skipping ${feature.filename}: issue #${feature.issueNumber} not in project`)
+        logger.info(`Skipping ${feature.filename}: issue #${feature.issueNumber} not in project`);
       }
-      continue
+      continue;
     }
 
-    const githubStatus = projectItem.status ?? null
-    const localStatus = githubStatus ? reverseMapping.get(githubStatus) : undefined
+    const githubStatus = projectItem.status ?? null;
+    const localStatus = githubStatus ? reverseMapping.get(githubStatus) : undefined;
 
     if (!localStatus) {
       if (verbose) {
-        logger.info(`Skipping ${feature.filename}: no status mapping for "${githubStatus}"`)
+        logger.info(`Skipping ${feature.filename}: no status mapping for "${githubStatus}"`);
       }
-      continue
+      continue;
+    }
+
+    if (localStatus !== "In progress") {
+      if (verbose) {
+        logger.info(`Skipping ${feature.filename}: status is "${localStatus}", not "In progress"`);
+      }
+      continue;
+    }
+
+    // eslint-disable-next-line no-await-in-loop
+    const [issueError, issue] = await github.issues.get(feature.issueNumber);
+    if (issueError) {
+      if (verbose) {
+        logger.info(
+          `Skipping ${feature.filename}: failed to fetch issue #${feature.issueNumber} (${issueError.message})`,
+        );
+      }
+      continue;
     }
 
     roadmapItems.push({
       title: feature.title,
       status: localStatus,
-      discussionNumber: feature.discussionNumber,
       issueNumber: feature.issueNumber,
-    })
+      projectItemId: projectItem.id,
+      assignees: issue.assignees,
+    });
   }
 
-  return [null, roadmapItems]
+  return [null, roadmapItems];
 }
 
 /**
@@ -366,12 +439,12 @@ function matchFeaturesWithStatus(params: {
  * @private
  */
 function reverseStatusMapping(mapping: Record<string, string>): Map<string, string> {
-  const reversed = new Map<string, string>()
-  const entries = Object.entries(mapping)
+  const reversed = new Map<string, string>();
+  const entries = Object.entries(mapping);
   for (const [localStatus, githubStatus] of entries) {
-    reversed.set(githubStatus, localStatus)
+    reversed.set(githubStatus, localStatus);
   }
-  return reversed
+  return reversed;
 }
 
 /**
@@ -379,12 +452,21 @@ function reverseStatusMapping(mapping: Record<string, string>): Map<string, stri
  *
  * @private
  */
-function buildMarkdownTable(items: readonly RoadmapItem[]): string {
-  const header = ['| Feature | Status | Discussion |', '| ------- | ------ | ---------- |']
+function buildMarkdownTable(
+  items: readonly RoadmapItem[],
+  owner: string,
+  repo: string,
+  projectNumber: number,
+  viewId: string,
+): string {
+  const header = [
+    "| Feature | Status | Assignees | View |",
+    "| ------- | ------ | --------- | ---- |",
+  ];
 
-  const rows = items.map(formatTableRow)
+  const rows = items.map((item) => formatTableRow(item, owner, repo, projectNumber, viewId));
 
-  return [...header, ...rows].join('\n')
+  return [...header, ...rows].join("\n");
 }
 
 /**
@@ -392,13 +474,39 @@ function buildMarkdownTable(items: readonly RoadmapItem[]): string {
  *
  * @private
  */
-function formatTableRow(item: RoadmapItem): string {
-  const badge = getStatusBadge(item.status)
-  const featureLink = `[${item.title}](https://github.com/joggrdocs/home/discussions/${item.discussionNumber})`
-  const statusBadge = `![${badge.label}](https://img.shields.io/badge/${encodeURIComponent(badge.label)}-${badge.color}?style=flat-square)`
-  const discussLink = `[![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/${item.discussionNumber})`
+function formatTableRow(
+  item: RoadmapItem,
+  owner: string,
+  repo: string,
+  projectNumber: number,
+  viewId: string,
+): string {
+  const badge = getStatusBadge(item.status);
+  const featureLink = `[${item.title}](https://github.com/joggrdocs/home/issues/${item.issueNumber})`;
+  const statusBadge = `![${badge.label}](https://img.shields.io/badge/${encodeURIComponent(badge.label)}-${badge.color}?style=flat-square)`;
+  const assigneesCell = formatAssignees(item.assignees);
+  const projectUrl = `https://github.com/orgs/${owner}/projects/${projectNumber}/views/${viewId}?pane=issue&itemId=${item.projectItemId}&issue=${owner}%7C${repo}%7C${item.issueNumber}`;
+  const viewBadge = `[![View](https://img.shields.io/badge/View-8B5CF6?style=flat-square)](${projectUrl})`;
 
-  return `| ${featureLink} | ${statusBadge} | ${discussLink} |`
+  return `| ${featureLink} | ${statusBadge} | ${assigneesCell} | ${viewBadge} |`;
+}
+
+/**
+ * Formats assignees as linked avatar images.
+ *
+ * @private
+ */
+function formatAssignees(assignees: readonly Assignee[]): string {
+  if (assignees.length === 0) {
+    return "";
+  }
+
+  const avatars = assignees.map(
+    (a) =>
+      `<a href="${a.profileUrl}"><img src="${a.avatarUrl}" width="24" height="24" alt="${a.login}" style="border-radius: 50%;" /></a>`,
+  );
+
+  return avatars.join(" ");
 }
 
 /**
@@ -408,19 +516,19 @@ function formatTableRow(item: RoadmapItem): string {
  */
 function getStatusBadge(status: string): StatusBadge {
   const badges: Record<string, StatusBadge> = {
-    Idea: { label: 'Idea', color: '9CA3AF' },
-    Upcoming: { label: 'Upcoming', color: '3B82F6' },
-    Planned: { label: 'Planned', color: '1D4ED8' },
-    'In progress': { label: 'In Progress', color: 'F59E0B' },
-    Released: { label: 'Released', color: '047857' },
-  }
+    Idea: { label: "Idea", color: "9CA3AF" },
+    Upcoming: { label: "Upcoming", color: "3B82F6" },
+    Planned: { label: "Planned", color: "1D4ED8" },
+    "In progress": { label: "In Progress", color: "F59E0B" },
+    Released: { label: "Released", color: "047857" },
+  };
 
-  const badge = badges[status]
+  const badge = badges[status];
   if (!badge) {
-    return { label: status, color: '6B7280' }
+    return { label: status, color: "6B7280" };
   }
 
-  return badge
+  return badge;
 }
 
 /**
@@ -430,11 +538,11 @@ function getStatusBadge(status: string): StatusBadge {
  */
 async function readReadme(path: string): Promise<[Error, null] | [null, string]> {
   try {
-    const content = await readFile(path, 'utf-8')
-    return [null, content]
+    const content = await readFile(path, "utf-8");
+    return [null, content];
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return [new Error(message), null]
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return [new Error(message), null];
   }
 }
 
@@ -445,11 +553,11 @@ async function readReadme(path: string): Promise<[Error, null] | [null, string]>
  */
 async function writeReadme(path: string, content: string): Promise<[Error, null] | [null, void]> {
   try {
-    await writeFile(path, content)
-    return [null, undefined]
+    await writeFile(path, content);
+    return [null, undefined];
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return [new Error(message), null]
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return [new Error(message), null];
   }
 }
 
@@ -460,19 +568,19 @@ async function writeReadme(path: string, content: string): Promise<[Error, null]
  */
 async function backupReadme(root: string): Promise<[Error, null] | [null, string]> {
   try {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T').join('_')
-    const backupDir = join(root, '.backups')
-    const backupPath = join(backupDir, `README_${timestamp}.md`)
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-").split("T").join("_");
+    const backupDir = join(root, ".backups");
+    const backupPath = join(backupDir, `README_${timestamp}.md`);
 
-    await mkdir(backupDir, { recursive: true })
+    await mkdir(backupDir, { recursive: true });
 
-    const srcPath = join(root, 'README.md')
-    await copyFile(srcPath, backupPath)
+    const srcPath = join(root, "README.md");
+    await copyFile(srcPath, backupPath);
 
-    return [null, backupPath]
+    return [null, backupPath];
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return [new Error(`Failed to backup README: ${message}`), null]
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return [new Error(`Failed to backup README: ${message}`), null];
   }
 }
 
@@ -482,23 +590,23 @@ async function backupReadme(root: string): Promise<[Error, null] | [null, string
  * @private
  */
 function replaceTableContent(readme: string, table: string): [Error, null] | [null, string] {
-  const startIdx = readme.indexOf(TARGET_START)
-  const endIdx = readme.indexOf(TARGET_END)
+  const startIdx = readme.indexOf(TARGET_START);
+  const endIdx = readme.indexOf(TARGET_END);
 
   if (startIdx === -1) {
-    return [new Error(`Missing ${TARGET_START} marker in README`), null]
+    return [new Error(`Missing ${TARGET_START} marker in README`), null];
   }
 
   if (endIdx === -1) {
-    return [new Error(`Missing ${TARGET_END} marker in README`), null]
+    return [new Error(`Missing ${TARGET_END} marker in README`), null];
   }
 
   if (startIdx >= endIdx) {
-    return [new Error('Start marker appears after end marker'), null]
+    return [new Error("Start marker appears after end marker"), null];
   }
 
-  const before = readme.slice(0, startIdx + TARGET_START.length)
-  const after = readme.slice(endIdx)
+  const before = readme.slice(0, startIdx + TARGET_START.length);
+  const after = readme.slice(endIdx);
 
-  return [null, `${before}\n${table}\n${after}`]
+  return [null, `${before}\n${table}\n${after}`];
 }

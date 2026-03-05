@@ -1,6 +1,8 @@
 ---
 issue: 29
 status: Upcoming
+productArea:
+  - 🔌 context-integration
 ---
 
 # Safe Package Resolution

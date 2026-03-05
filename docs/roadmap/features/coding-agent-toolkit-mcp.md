@@ -2,6 +2,8 @@
 issue: 11
 status: Upcoming
 discussion: 6
+productArea:
+  - 🔌 context-integration
 ---
 
 # Coding Agent Toolkit MCP (Serena)

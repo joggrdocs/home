@@ -1,6 +1,8 @@
 ---
 status: Planned
 issue: 23
+productArea:
+  - 🎮 gg-workflow
 ---
 
 # GG Plan Review

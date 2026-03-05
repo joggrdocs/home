@@ -1,6 +1,8 @@
 ---
 status: Idea
 issue: 32
+productArea:
+  - 📚 documentation
 ---
 
 # Vibepress Publish

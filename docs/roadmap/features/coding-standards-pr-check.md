@@ -1,6 +1,8 @@
 ---
 status: Planned
 issue: 13
+productArea:
+  - 📏 coding-standards
 ---
 
 # Coding Standards PR Check

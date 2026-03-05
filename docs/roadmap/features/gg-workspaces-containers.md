@@ -1,6 +1,9 @@
 ---
 issue: 26
 status: Upcoming
+productArea:
+  - 📦 agent-sandbox
+  - 🎮 gg-workflow
 ---
 
 # GG Workspaces: Containers

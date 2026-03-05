@@ -1,96 +1,100 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
 /**
  * Result type for query loading operations.
  */
-export type QueryLoaderResult<T = string> = readonly [Error, null] | readonly [null, T]
+export type QueryLoaderResult<T = string> = readonly [Error, null] | readonly [null, T];
 
 /**
  * Loaded GraphQL queries.
  */
 export interface Queries {
-  readonly getProject: string
-  readonly listProjectViews: string
-  readonly updateFieldOptions: string
+  readonly getProject: string;
+  readonly listProjectViews: string;
+  readonly listProjectItems: string;
+  readonly updateFieldOptions: string;
 }
 
-const GET_PROJECT_QUERY = `query GetProject($owner: String!, $number: Int!) {
-  organization(login: $owner) {
-    projectV2(number: $number) {
-      id
-      title
-      shortDescription
-      public
-      readme
-    }
-  }
-}`
+/**
+ * Context with package directory.
+ */
+export interface QueryLoaderContext {
+  readonly packageDir: string;
+}
 
-const LIST_PROJECT_VIEWS_QUERY = `query ListProjectViews($owner: String!, $number: Int!) {
-  organization(login: $owner) {
-    projectV2(number: $number) {
-      views(first: 50) {
-        nodes {
-          id
-          name
-          layout
-          filter
-          groupByFields(first: 10) {
-            nodes {
-              ... on ProjectV2Field { name }
-              ... on ProjectV2SingleSelectField { name }
-              ... on ProjectV2IterationField { name }
-            }
-          }
-          sortByFields(first: 10) {
-            nodes {
-              field {
-                ... on ProjectV2Field { name }
-                ... on ProjectV2SingleSelectField { name }
-                ... on ProjectV2IterationField { name }
-              }
-              direction
-            }
-          }
-          visibleFields(first: 50) {
-            nodes {
-              name
-            }
-          }
-        }
-      }
-    }
-  }
-}`
-
-const UPDATE_FIELD_OPTIONS_MUTATION = `mutation UpdateFieldOptions($fieldId: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
-  updateProjectV2Field(input: {
-    fieldId: $fieldId
-    singleSelectOptions: $options
-  }) {
-    projectV2Field {
-      ... on ProjectV2SingleSelectField {
-        id
-        name
-        options {
-          id
-          name
-        }
-      }
-    }
-  }
-}`
+// ---------------------------------------------------------------------------
+// Exports
+// ---------------------------------------------------------------------------
 
 /**
- * Loads all GraphQL queries as inlined constants.
+ * Loads all GraphQL queries from .graphql files.
  *
+ * @param ctx - Context with packageDir to locate query files
  * @returns All queries or an error if any query fails to load.
  */
-export async function loadQueries(): Promise<QueryLoaderResult<Queries>> {
+export async function loadQueries(ctx: QueryLoaderContext): Promise<QueryLoaderResult<Queries>> {
+  const queriesDir = join(ctx.packageDir, "scripts", "lib", "queries");
+
+  const [getProjectError, getProject] = await readQuery(queriesDir, "get-project.graphql");
+  if (getProjectError) {
+    return [getProjectError, null];
+  }
+
+  const [listViewsError, listProjectViews] = await readQuery(
+    queriesDir,
+    "list-project-views.graphql",
+  );
+  if (listViewsError) {
+    return [listViewsError, null];
+  }
+
+  const [listItemsError, listProjectItems] = await readQuery(
+    queriesDir,
+    "list-project-items.graphql",
+  );
+  if (listItemsError) {
+    return [listItemsError, null];
+  }
+
+  const [updateOptionsError, updateFieldOptions] = await readQuery(
+    queriesDir,
+    "update-field-options.graphql",
+  );
+  if (updateOptionsError) {
+    return [updateOptionsError, null];
+  }
+
   return [
     null,
     {
-      getProject: GET_PROJECT_QUERY,
-      listProjectViews: LIST_PROJECT_VIEWS_QUERY,
-      updateFieldOptions: UPDATE_FIELD_OPTIONS_MUTATION,
+      getProject,
+      listProjectViews,
+      listProjectItems,
+      updateFieldOptions,
     },
-  ]
+  ];
+}
+
+// ---------------------------------------------------------------------------
+// Private
+// ---------------------------------------------------------------------------
+
+/**
+ * Reads a GraphQL query file.
+ *
+ * @private
+ */
+async function readQuery(dir: string, filename: string): Promise<QueryLoaderResult> {
+  try {
+    const content = await readFile(join(dir, filename), "utf-8");
+    return [null, content.trim()];
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return [new Error(`Failed to read ${filename}: ${message}`), null];
+  }
 }

@@ -1,0 +1,210 @@
+name: Notify Slack on External Activity
+
+on:
+  issues:
+    types: [opened]
+  discussion:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: read
+  discussions: read
+
+jobs:
+  check-and-notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Check if author is team member
+        id: check-author
+        run: |
+          AUTHOR="${{ github.event.issue.user.login || github.event.discussion.user.login }}"
+          TEAM_MEMBERS=$(cat .github/humans.json | jq -r '.team[]')
+
+          IS_TEAM_MEMBER=false
+          for member in $TEAM_MEMBERS; do
+            if [ "$AUTHOR" = "$member" ]; then
+              IS_TEAM_MEMBER=true
+              break
+            fi
+          done
+
+          echo "is_team_member=$IS_TEAM_MEMBER" >> $GITHUB_OUTPUT
+          echo "author=$AUTHOR" >> $GITHUB_OUTPUT
+
+      - name: Send Slack notification for issue
+        if: |
+          steps.check-author.outputs.is_team_member == 'false' &&
+          github.event_name == 'issues'
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "🎯 New Issue Created",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:*\n<${{ github.event.repository.html_url }}|${{ github.event.repository.full_name }}>"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Author:*\n<${{ github.event.issue.user.html_url }}|@${{ steps.check-author.outputs.author }}>"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Issue:*\n<${{ github.event.issue.html_url }}|#${{ github.event.issue.number }} - ${{ github.event.issue.title }}>"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Status:*\n${{ github.event.issue.state }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Description:*\n${{ github.event.issue.body }}"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "Created at: <!date^${{ github.event.issue.created_at }}^{date_num} {time_secs}|${{ github.event.issue.created_at }}>"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Issue",
+                        "emoji": true
+                      },
+                      "url": "${{ github.event.issue.html_url }}",
+                      "style": "primary"
+                    },
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Author Profile",
+                        "emoji": true
+                      },
+                      "url": "${{ github.event.issue.user.html_url }}"
+                    }
+                  ]
+                }
+              ]
+            }
+
+      - name: Send Slack notification for discussion
+        if: |
+          steps.check-author.outputs.is_team_member == 'false' &&
+          github.event_name == 'discussion'
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "💬 New Discussion Created",
+                    "emoji": true
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:*\n<${{ github.event.repository.html_url }}|${{ github.event.repository.full_name }}>"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Author:*\n<${{ github.event.discussion.user.html_url }}|@${{ steps.check-author.outputs.author }}>"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Discussion:*\n<${{ github.event.discussion.html_url }}|${{ github.event.discussion.title }}>"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Category:*\n${{ github.event.discussion.category.name }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Description:*\n${{ github.event.discussion.body }}"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "Created at: <!date^${{ github.event.discussion.created_at }}^{date_num} {time_secs}|${{ github.event.discussion.created_at }}>"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Discussion",
+                        "emoji": true
+                      },
+                      "url": "${{ github.event.discussion.html_url }}",
+                      "style": "primary"
+                    },
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Author Profile",
+                        "emoji": true
+                      },
+                      "url": "${{ github.event.discussion.user.html_url }}"
+                    }
+                  ]
+                }
+              ]
+            }

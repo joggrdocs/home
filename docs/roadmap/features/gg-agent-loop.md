@@ -1,6 +1,8 @@
 ---
 status: Idea
 issue: 20
+productArea:
+  - 🎮 gg-workflow
 ---
 
 # GG Agent Loop

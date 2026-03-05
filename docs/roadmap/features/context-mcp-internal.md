@@ -1,6 +1,8 @@
 ---
 status: Idea
 issue: 16
+productArea:
+  - 🔌 context-integration
 ---
 
 # Context MCP: Internal

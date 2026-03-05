@@ -1,6 +1,9 @@
 ---
 status: Idea
 issue: 27
+productArea:
+  - 📦 agent-sandbox
+  - 🎮 gg-workflow
 ---
 
 # GG Workspaces: Remote

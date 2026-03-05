@@ -36,7 +36,7 @@ For the Status field, present the valid options loaded from `project.json` using
 Before creating a new issue, search for existing ones to avoid duplicates:
 
 ```bash
-gh issue list --repo joggrdocs/code --search "<title or keywords>" --state all --limit 10
+gh issue list --repo joggrdocs/home --search "<title or keywords>" --state all --limit 10
 ```
 
 Present any matches to the user and ask whether to link an existing issue or create a new one.
@@ -47,7 +47,7 @@ When the user wants a new issue, create it with the `enhancement` label:
 
 ```bash
 gh issue create \
-  --repo joggrdocs/code \
+  --repo joggrdocs/home \
   --title "<Title>" \
   --label "enhancement" \
   --body "$(cat <<'EOF'
@@ -104,7 +104,7 @@ Append a new row to the table in `docs/roadmap/overview.md`. The row format is:
 
 Column order is: Feature, Description, Status, Issue.
 
-- For the issue column, use `[#N](https://github.com/joggrdocs/code/issues/N)` if an issue exists, otherwise use `-`.
+- For the issue column, use `[#N](https://github.com/joggrdocs/home/issues/N)` if an issue exists, otherwise use `-`.
 - Insert the new row in the correct status group: Released items first, then In progress, then Planned, then Idea.
 - For `In progress` status in badge URLs, use `In%20progress` to encode the space.
 

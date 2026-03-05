@@ -1,0 +1,4 @@
+{
+  "types": ["feat", "fix", "docs", "refactor", "test", "chore", "perf", "security"],
+  "scopes": ["scripts", "docs", "roadmap", "deps", "ci", "repo"]
+}

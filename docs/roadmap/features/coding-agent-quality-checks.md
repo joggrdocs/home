@@ -1,6 +1,8 @@
 ---
 issue: 5
 status: Upcoming
+productArea:
+  - 🛠️ developer-tools
 ---
 
 # Coding Agent Quality Checks

@@ -1,0 +1,29 @@
+query ListProjectItems($owner: String!, $number: Int!) {
+  organization(login: $owner) {
+    projectV2(number: $number) {
+      items(first: 100) {
+        nodes {
+          id
+          content {
+            ... on Issue {
+              number
+              title
+            }
+          }
+          fieldValues(first: 50) {
+            nodes {
+              ... on ProjectV2ItemFieldSingleSelectValue {
+                field {
+                  ... on ProjectV2SingleSelectField {
+                    name
+                  }
+                }
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

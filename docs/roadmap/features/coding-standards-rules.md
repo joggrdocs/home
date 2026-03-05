@@ -1,6 +1,8 @@
 ---
 status: Planned
 issue: 14
+productArea:
+  - 📏 coding-standards
 ---
 
 # Coding Standards Rules

@@ -1,6 +1,8 @@
 ---
 status: In progress
 issue: 6
+productArea:
+  - 🔧 agent-setup
 ---
 
 # Coding Agent Setup CLI

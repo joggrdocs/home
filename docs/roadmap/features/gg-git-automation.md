@@ -1,6 +1,9 @@
 ---
 issue: 21
 status: Upcoming
+productArea:
+  - 🎮 gg-workflow
+  - 🛠️ developer-tools
 ---
 
 # GG Git Automation

@@ -83,7 +83,7 @@ pnpm install
 
 **Issue:** Git hooks block your commit or push with lint/format errors.
 
-**Fix:** Fix the reported issues and re-commit. The hooks run automatically via [Lefthook](https://github.com/evilmartians/lefthook) -- see `lefthook.yml` for the full hook configuration.
+**Fix:** Fix the reported issues and re-commit. The hooks run automatically via [Lefthook](https://github.com/evilmartians/lefthook) -- see `.config/lefthook.yml` for the full hook configuration.
 
 ## References
 

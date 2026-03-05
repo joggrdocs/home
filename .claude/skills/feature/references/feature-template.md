@@ -111,7 +111,7 @@ Examples:
 ```
 
 Where `<issue>` is either:
-- `[#N](https://github.com/joggrdocs/code/issues/N)` — linked GitHub issue
+- `[#N](https://github.com/joggrdocs/home/issues/N)` — linked GitHub issue
 - `-` — no issue yet
 
 For `In progress` in badge URLs, encode the space: `In%20progress`.
