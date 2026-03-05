@@ -42,7 +42,7 @@ interface ProjectConfig {
 interface ConfigField {
   name: string
   type: string
-  options?: Array<{ name: string; description?: string }>
+  options?: Array<{ name: string; description?: string; color?: string }>
 }
 
 interface ConfigView {
@@ -326,7 +326,7 @@ async function createField(owner: string, number: number, field: ConfigField): P
       field.options.map((o) => ({
         name: o.name,
         description: o.description ?? '',
-        color: 'GRAY',
+        color: o.color ?? 'GRAY',
       }))
     )
     args.push('--single-select-options', optionsJson)
@@ -339,35 +339,20 @@ async function deleteField(fieldId: string): Promise<void> {
   await execFileAsync('gh', ['project', 'field-delete', '--id', fieldId])
 }
 
-async function updateFieldOptions(
-  projectId: string,
-  fieldId: string,
-  config: ConfigField,
-  existingOptions: Array<{ id: string; name: string }>
-): Promise<void> {
+async function updateFieldOptions(fieldId: string, config: ConfigField): Promise<void> {
   if (!config.options) {
     return
   }
 
-  const existingByName = new Map(existingOptions.map((o) => [o.name, o.id]))
-
-  const options = config.options.map((o) => {
-    const existingId = existingByName.get(o.name)
-    const opt: Record<string, string> = {
-      name: o.name,
-      description: o.description ?? '',
-      color: 'GRAY',
-    }
-    if (existingId) {
-      opt.id = existingId
-    }
-    return opt
-  })
+  const options = config.options.map((o) => ({
+    name: o.name,
+    description: o.description ?? '',
+    color: o.color ?? 'GRAY',
+  }))
 
   await graphqlMutation({
-    query: `mutation($projectId: ID!, $fieldId: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
+    query: `mutation($fieldId: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
       updateProjectV2Field(input: {
-        projectId: $projectId
         fieldId: $fieldId
         singleSelectOptions: $options
       }) {
@@ -383,7 +368,7 @@ async function updateFieldOptions(
         }
       }
     }`,
-    variables: { projectId, fieldId, options },
+    variables: { fieldId, options },
   })
 }
 
@@ -532,7 +517,7 @@ export default lauf({
         // Update field options
         for (const { config: fieldConfig, github: ghField } of diff.toUpdate) {
           ctx.spinner.start(`Updating options for "${fieldConfig.name}"...`)
-          await updateFieldOptions(metadata.id, ghField.id, fieldConfig, ghField.options ?? [])
+          await updateFieldOptions(ghField.id, fieldConfig)
           ctx.spinner.stop(`Updated options for "${fieldConfig.name}"`)
         }
       } else {

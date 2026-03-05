@@ -5,9 +5,12 @@ Use this exact format when creating new roadmap feature files at `docs/roadmap/f
 ## Template
 
 ```markdown
-# <Title>
+---
+status: <Status>
+issue: <issue number or empty>
+---
 
-**Status:** ![<Status>](https://img.shields.io/badge/<Status>-<color>)
+# <Title>
 
 ## Problem
 
@@ -22,9 +25,36 @@ Use this exact format when creating new roadmap feature files at `docs/roadmap/f
 <What users gain — the concrete benefit or outcome.>
 ```
 
+## YAML Frontmatter
+
+Every feature file starts with YAML frontmatter containing:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `status` | Yes | Current status — must match a value from `project.json` |
+| `issue` | No | GitHub issue number (leave empty if none) |
+
 ## Status Badges
 
-Use these exact badge URLs based on feature status:
+Status values and badge colors are defined in `project.json` under the `Status` field. Use these exact badge URLs based on feature status:
+
+### Idea (purple)
+
+```
+![Idea](https://img.shields.io/badge/Idea-%23663399)
+```
+
+### Planned (yellow/gold)
+
+```
+![Planned](https://img.shields.io/badge/Planned-%23665500)
+```
+
+### In progress (blue)
+
+```
+![In progress](https://img.shields.io/badge/In%20progress-%23003366)
+```
 
 ### Released (dark green)
 
@@ -32,24 +62,15 @@ Use these exact badge URLs based on feature status:
 ![Released](https://img.shields.io/badge/Released-%23006400)
 ```
 
-### Planned (dark blue)
-
-```
-![Planned](https://img.shields.io/badge/Planned-%23003366)
-```
-
-### Approved (dark yellow/gold)
-
-```
-![Approved](https://img.shields.io/badge/Approved-%23665500)
-```
-
 ## Example: Agent Harness
 
 ```markdown
-# Agent Harness
+---
+status: Planned
+issue:
+---
 
-**Status:** ![Planned](https://img.shields.io/badge/Planned-%23003366)
+# Agent Harness
 
 ## Problem
 
@@ -92,3 +113,5 @@ Examples:
 Where `<issue>` is either:
 - `[#N](https://github.com/joggrdocs/code/issues/N)` — linked GitHub issue
 - `-` — no issue yet
+
+For `In progress` in badge URLs, encode the space: `In%20progress`.

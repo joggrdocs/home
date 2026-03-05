@@ -8,7 +8,7 @@
 
 <img src="./assets/banner.svg" alt="Joggr Banner" width="100%" />
 
-[Discussions](https://github.com/joggrdocs/code/discussions) · [Issues](https://github.com/joggrdocs/code/issues) · [Roadmap](./ROADMAP.md)
+[Discussions](https://github.com/joggrdocs/code/discussions) · [Issues](https://github.com/joggrdocs/code/issues) · [Roadmap](https://github.com/orgs/joggrdocs/projects/9)
 
 </div>
 
@@ -22,7 +22,7 @@ Joggr scans your AI agent setup, generates coding standards from your repo, and 
 
 - [Discussions](https://github.com/joggrdocs/code/discussions) -- ask questions, share ideas, and connect with other developers.
 - [Issues](https://github.com/joggrdocs/code/issues) -- report bugs or request features.
-- [Roadmap](./ROADMAP.md) -- see what we are working on.
+- [Roadmap](https://github.com/orgs/joggrdocs/projects/9) -- see what we are working on.
 - [Contributing](./CONTRIBUTING.md) -- learn how to contribute.
 - [Status](https://status.joggr.io) -- check system status and uptime.
 

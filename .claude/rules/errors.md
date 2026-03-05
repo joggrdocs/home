@@ -1,0 +1,51 @@
+---
+paths:
+  - 'scripts/**/*.ts'
+---
+
+# Error Handling Rules
+
+All expected failures use the `Result<T, E>` tuple type. Never throw exceptions. See the full standard: [Error Handling](../../contributing/standards/typescript/errors.md).
+
+## Result Type
+
+```ts
+type Result<T, E = Error> = readonly [E, null] | readonly [null, T]
+```
+
+- Success: `[null, value]`
+- Failure: `[error, null]`
+
+## Conventions
+
+- Define domain-specific error interfaces with a descriptive `type` or `reason` field
+- Create type aliases for domain results (e.g., `type ConfigResult<T> = Result<T, ConfigError>`)
+- Wrap async operations that can reject with a try/catch that returns a Result tuple
+
+## Chaining with Early Returns
+
+```ts
+const [configError, config] = loadConfig(workspace)
+if (configError) return [configError, null]
+
+const [resolveError, result] = resolve(config, name)
+if (resolveError) return [resolveError, null]
+
+return [null, result]
+```
+
+## Error Type Pattern
+
+```ts
+interface ConfigError {
+  readonly type: 'invalid_json' | 'missing_field' | 'unknown_key'
+  readonly message: string
+}
+```
+
+## Rules
+
+- Never throw inside a function that returns `Result`
+- Always check the error element before accessing the value
+- Use `ts-pattern` `match` for exhaustive handling of multiple error variants
+- Map low-level errors to domain-specific error reasons

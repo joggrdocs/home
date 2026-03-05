@@ -14,16 +14,24 @@
       "type": "SINGLE_SELECT",
       "options": [
         {
-          "name": "Todo",
-          "description": "Planned feature"
+          "name": "Idea",
+          "description": "Raw idea or suggestion",
+          "color": "PURPLE"
+        },
+        {
+          "name": "Planned",
+          "description": "Planned feature",
+          "color": "YELLOW"
         },
         {
           "name": "In progress",
-          "description": "Approved and actively being worked on"
+          "description": "Approved and actively being worked on",
+          "color": "BLUE"
         },
         {
-          "name": "Done",
-          "description": "Released feature"
+          "name": "Released",
+          "description": "Released feature",
+          "color": "GREEN"
         }
       ]
     },
@@ -67,6 +75,7 @@
     }
   ],
   "statusMapping": {
+    "Idea": "Idea",
     "Planned": "Todo",
     "Approved": "In progress",
     "Released": "Done"
