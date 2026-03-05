@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "The public hub for Joggr — documentation, roadmap, and community.",
+  "type": "module",
   "scripts": {
     "prepare": "lefthook install",
     "lint": "oxlint",
@@ -13,10 +14,12 @@
   "devDependencies": {
     "@commitlint/cli": "^20.0.0",
     "@commitlint/config-conventional": "^20.0.0",
+    "@types/node": "^24.11.0",
     "laufen": "^1.1.0",
     "lefthook": "^2.1.0",
     "oxfmt": "^0.36.0",
-    "oxlint": "^1.51.0"
+    "oxlint": "^1.51.0",
+    "yaml": "^2.8.2"
   },
   "packageManager": "pnpm@10.25.0"
 }

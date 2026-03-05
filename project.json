@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": {
+    "owner": "joggrdocs",
+    "number": 9,
+    "title": "roadmap",
+    "description": "The public hub for Joggr — documentation, roadmap, and community.",
+    "visibility": "PRIVATE",
+    "readme": ""
+  },
+  "fields": [
+    {
+      "name": "Status",
+      "type": "SINGLE_SELECT",
+      "options": [
+        {
+          "name": "Todo",
+          "description": "Planned feature"
+        },
+        {
+          "name": "In progress",
+          "description": "Approved and actively being worked on"
+        },
+        {
+          "name": "Done",
+          "description": "Released feature"
+        }
+      ]
+    },
+    {
+      "name": "Start date",
+      "type": "DATE"
+    },
+    {
+      "name": "Target date",
+      "type": "DATE"
+    }
+  ],
+  "views": [
+    {
+      "name": "Board",
+      "layout": "BOARD",
+      "groupBy": "Status",
+      "sortBy": null,
+      "fields": [
+        "Title",
+        "Status",
+        "Assignees",
+        "Labels"
+      ]
+    },
+    {
+      "name": "Backlog",
+      "layout": "TABLE",
+      "groupBy": null,
+      "sortBy": {
+        "field": "Status",
+        "direction": "ASC"
+      },
+      "fields": [
+        "Title",
+        "Status",
+        "Assignees",
+        "Labels"
+      ],
+      "filter": "status:Todo,\"In progress\""
+    }
+  ],
+  "statusMapping": {
+    "Planned": "Todo",
+    "Approved": "In progress",
+    "Released": "Done"
+  }
+}
