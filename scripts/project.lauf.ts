@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { lauf, z } from "laufen";
 
 import { createBackup } from "./lib/backup.js";
+import { displayDryRunWarning } from "./lib/dry-run-warning.js";
 import { createGitHubClient } from "./lib/github-client.js";
 import type { ProjectField, ProjectView } from "./lib/github-client.js";
 
@@ -106,7 +107,7 @@ export default lauf({
       const dryRun = ctx.args["dry-run"];
 
       if (dryRun) {
-        ctx.logger.warn("Dry run mode: no changes will be applied");
+        displayDryRunWarning(ctx.logger);
       }
 
       // Determine sync direction
@@ -316,7 +317,6 @@ export default lauf({
         ctx.logger.newlines();
 
         if (dryRun) {
-          ctx.logger.warn("Dry run: no changes applied");
           return 0;
         }
 
@@ -527,8 +527,6 @@ export default lauf({
               ctx.spinner.stop(`Updated options for "${fieldConfig.name}"`);
             }
           }
-        } else {
-          ctx.logger.warn("Dry run: skipping field changes");
         }
       }
 

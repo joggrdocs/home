@@ -6,6 +6,7 @@ import { parse as parseYaml } from "yaml";
 
 import { createBackup } from "./lib/backup.js";
 import { displayDiff, type DiffChange } from "./lib/diff.js";
+import { displayDryRunWarning } from "./lib/dry-run-warning.js";
 import type { ProjectItem } from "./lib/github-client.js";
 import { createGitHubClient } from "./lib/github-client.js";
 
@@ -72,6 +73,10 @@ export default lauf({
     y: z.boolean().default(false).describe("Skip confirmation prompt (alias)"),
   },
   async run(ctx) {
+    if (ctx.args["dry-run"]) {
+      displayDryRunWarning(ctx.logger);
+    }
+
     // Step 1: Read project config
     ctx.spinner.start("Reading project config...");
     const [configError, config] = await readProjectConfig(ctx.root);
@@ -205,7 +210,6 @@ export default lauf({
     displayDiff(ctx.logger, changes, `Roadmap table update (${roadmapItems.length} item(s))`);
 
     if (ctx.args["dry-run"]) {
-      ctx.logger.warn("Dry run: no changes applied");
       return 0;
     }
 

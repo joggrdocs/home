@@ -9,7 +9,8 @@
 <img src="./.github/assets/banner.svg" alt="Joggr Banner" width="100%" />
 
 [![Roadmap](https://img.shields.io/badge/Roadmap-8B5CF6?style=for-the-badge&logo=googlemaps&logoColor=white)](https://github.com/orgs/joggrdocs/projects/9)
-[![Discussions](https://img.shields.io/badge/Discussions-8B5CF6?style=for-the-badge&logo=imessage&logoColor=white)](https://github.com/joggrdocs/home/discussions)
+<!-- TODO: Add back discussions once we are ready -->
+<!-- [![Discussions](https://img.shields.io/badge/Discussions-8B5CF6?style=for-the-badge&logo=imessage&logoColor=white)](https://github.com/joggrdocs/home/discussions) -->
 [![Issues](https://img.shields.io/badge/Issues-8B5CF6?style=for-the-badge&logo=github&logoColor=white)](https://github.com/joggrdocs/home/issues)
 
 </div>

@@ -5,6 +5,7 @@ import { lauf, z } from "laufen";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 
 import { createBackup } from "./lib/backup.js";
+import { displayDryRunWarning } from "./lib/dry-run-warning.js";
 import { createGitHubClient } from "./lib/github-client.js";
 
 const FEATURES_DIR = "docs/roadmap/features";
@@ -82,6 +83,10 @@ export default lauf({
     process.on("SIGTERM", handleInterrupt);
 
     try {
+      if (ctx.args["dry-run"]) {
+        displayDryRunWarning(ctx.logger);
+      }
+
       // Determine sync direction
       let direction = ctx.args.direction;
 
@@ -279,7 +284,6 @@ export default lauf({
         ctx.logger.newlines();
 
         if (ctx.args["dry-run"]) {
-          ctx.logger.warn("Dry run: no changes applied");
           return 0;
         }
 
@@ -463,7 +467,6 @@ export default lauf({
       ctx.logger.newlines();
 
       if (ctx.args["dry-run"]) {
-        ctx.logger.warn("Dry run: no changes applied");
         return 0;
       }
 
