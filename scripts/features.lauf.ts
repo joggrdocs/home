@@ -13,10 +13,15 @@ const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---/
 const BATCH_SIZE = 5
 const MAX_BODY_SECTIONS = 3
 
-const PROJECT_OWNER = 'joggrdocs'
-const PROJECT_NUMBER = 9
-const PROJECT_ID = 'PVT_kwDOAyJs4c4BQ0Ks'
-const STATUS_FIELD_ID = 'PVTSSF_lADOAyJs4c4BQ0Kszg-04b0'
+// --- Types ---
+
+interface FeaturesConfig {
+  project: {
+    owner: string
+    number: number
+  }
+  statusMapping: Record<string, string>
+}
 
 interface Frontmatter {
   status?: string
@@ -32,10 +37,12 @@ interface FeatureFile {
   frontmatter: Frontmatter
 }
 
-interface ProjectStatusOption {
+interface StatusField {
   id: string
-  name: string
+  options: Map<string, string>
 }
+
+// --- Helper Functions ---
 
 function parseFrontmatter(raw: string): { frontmatter: Frontmatter; content: string } | null {
   const match = raw.match(FRONTMATTER_RE)
@@ -101,31 +108,96 @@ function buildIssueBody(content: string): { title: string; body: string } | null
   return { title, body: bodyParts.join('\n').trimEnd() + '\n' }
 }
 
-async function fetchStatusOptions(): Promise<Map<string, string>> {
+/**
+ * Reads project owner, number, and statusMapping from project.json.
+ */
+async function readFeaturesConfig(root: string): Promise<FeaturesConfig> {
+  const raw = await readFile(join(root, 'project.json'), 'utf-8')
+  const parsed = JSON.parse(raw) as Record<string, unknown>
+  const project = parsed.project as FeaturesConfig['project']
+  const statusMapping = (parsed.statusMapping ?? {}) as Record<string, string>
+
+  return {
+    project: { owner: project.owner, number: project.number },
+    statusMapping,
+  }
+}
+
+/**
+ * Fetches the project node ID from the GitHub Projects v2 API.
+ */
+async function fetchProjectId(owner: string, number: number): Promise<string> {
+  const query = `query {
+    organization(login: "${owner}") {
+      projectV2(number: ${number}) {
+        id
+      }
+    }
+  }`
+
+  const { stdout } = await execFileAsync('gh', ['api', 'graphql', '-f', `query=${query}`])
+  const data = JSON.parse(stdout)
+  return data.data.organization.projectV2.id as string
+}
+
+/**
+ * Fetches the Status field ID and its option name→ID map from the project.
+ */
+async function fetchStatusField(owner: string, number: number): Promise<StatusField> {
   const { stdout } = await execFileAsync('gh', [
     'project',
     'field-list',
-    String(PROJECT_NUMBER),
+    String(number),
     '--owner',
-    PROJECT_OWNER,
+    owner,
     '--format',
     'json',
   ])
 
   const data = JSON.parse(stdout) as {
-    fields: Array<{ id: string; name: string; options?: ProjectStatusOption[] }>
+    fields: Array<{ id: string; name: string; options?: Array<{ id: string; name: string }> }>
   }
-  const statusField = data.fields.find((f) => f.id === STATUS_FIELD_ID)
+  const statusField = data.fields.find((f) => f.name === 'Status')
 
-  if (!statusField?.options) {
-    throw new Error('Could not find Status field options in project')
+  if (!statusField || !statusField.options) {
+    throw new Error('Could not find Status field with options in project')
   }
 
-  const map = new Map<string, string>()
+  const options = new Map<string, string>()
   for (const opt of statusField.options) {
-    map.set(opt.name, opt.id)
+    options.set(opt.name, opt.id)
   }
-  return map
+
+  return { id: statusField.id, options }
+}
+
+/**
+ * Searches for an existing issue with an exact title match.
+ *
+ * Returns the issue number and URL if found, or null.
+ */
+async function findExistingIssue(title: string): Promise<{ number: number; url: string } | null> {
+  const { stdout } = await execFileAsync('gh', [
+    'issue',
+    'list',
+    '--search',
+    `"${title}" in:title`,
+    '--state',
+    'all',
+    '--json',
+    'number,title,url',
+    '--limit',
+    '100',
+  ])
+
+  const issues = JSON.parse(stdout) as Array<{ number: number; title: string; url: string }>
+  const exact = issues.find((i) => i.title === title)
+
+  if (!exact) {
+    return null
+  }
+
+  return { number: exact.number, url: exact.url }
 }
 
 async function createGitHubIssue(
@@ -167,36 +239,40 @@ async function createGitHubIssue(
   return { number: parseInt(match[1], 10), url: issueUrl }
 }
 
-async function addToProject(
-  issueUrl: string,
-  status: string | undefined,
+async function addToProject(params: {
+  owner: string
+  number: number
+  projectId: string
+  statusFieldId: string
+  issueUrl: string
+  mappedStatus: string | undefined
   statusOptions: Map<string, string>
-): Promise<void> {
+}): Promise<void> {
   const { stdout } = await execFileAsync('gh', [
     'project',
     'item-add',
-    String(PROJECT_NUMBER),
+    String(params.number),
     '--owner',
-    PROJECT_OWNER,
+    params.owner,
     '--url',
-    issueUrl,
+    params.issueUrl,
     '--format',
     'json',
   ])
 
   const { id: itemId } = JSON.parse(stdout) as { id: string }
 
-  const optionId = status ? statusOptions.get(status) : undefined
+  const optionId = params.mappedStatus ? params.statusOptions.get(params.mappedStatus) : undefined
   if (optionId) {
     await execFileAsync('gh', [
       'project',
       'item-edit',
       '--project-id',
-      PROJECT_ID,
+      params.projectId,
       '--id',
       itemId,
       '--field-id',
-      STATUS_FIELD_ID,
+      params.statusFieldId,
       '--single-select-option-id',
       optionId,
     ])
@@ -225,6 +301,8 @@ async function selectFromBatch(
   return features.filter((f) => selectedSet.has(f.filename))
 }
 
+// --- Main Script ---
+
 export default lauf({
   description: 'Syncs features to GitHub issues',
   args: {
@@ -234,6 +312,17 @@ export default lauf({
   async run(ctx) {
     const featuresDir = join(ctx.root, FEATURES_DIR)
 
+    // Step 1: Read project config from project.json
+    ctx.spinner.start('Reading project config...')
+    const config = await readFeaturesConfig(ctx.root)
+    const { owner, number } = config.project
+    ctx.spinner.stop(`Read config for project #${number} (${owner})`)
+
+    if (ctx.args.verbose) {
+      ctx.logger.info(`Status mapping: ${JSON.stringify(config.statusMapping)}`)
+    }
+
+    // Step 2: Scan feature files
     if (ctx.args.verbose) {
       ctx.logger.info(`Scanning features in ${featuresDir}`)
     }
@@ -300,23 +389,37 @@ export default lauf({
       return 0
     }
 
-    // Fetch project status options once upfront
+    // Step 3: Fetch project state in parallel
     ctx.spinner.start('Fetching project status options...')
-    const statusOptions = await fetchStatusOptions()
+    const [projectId, statusField] = await Promise.all([
+      fetchProjectId(owner, number),
+      fetchStatusField(owner, number),
+    ])
     ctx.spinner.stop('Fetched project status options')
 
-    // Validate that all required statuses exist in the project
+    // Step 4: Validate that all feature statuses exist in statusMapping
     const usedStatuses = [
       ...new Set(features.map((f) => f.frontmatter.status).filter(Boolean)),
     ] as string[]
-    const missingStatuses = usedStatuses.filter((s) => !statusOptions.has(s))
+
+    const unmappedStatuses = usedStatuses.filter((s) => !(s in config.statusMapping))
+    if (unmappedStatuses.length > 0) {
+      ctx.logger.error(
+        `Feature statuses not found in statusMapping: ${unmappedStatuses.join(', ')}`
+      )
+      return 1
+    }
+
+    // Validate that all mapped statuses exist in the project
+    const mappedStatuses = [...new Set(usedStatuses.map((s) => config.statusMapping[s]))]
+    const missingStatuses = mappedStatuses.filter((s) => !statusField.options.has(s))
 
     if (missingStatuses.length > 0) {
       ctx.logger.error(`Missing project status options: ${missingStatuses.join(', ')}`)
       return 1
     }
 
-    // Batch features and prompt for approval
+    // Step 5: Batch features and prompt for approval
     const batches: FeatureFile[][] = []
     for (let i = 0; i < features.length; i += BATCH_SIZE) {
       batches.push(features.slice(i, i + BATCH_SIZE))
@@ -334,29 +437,67 @@ export default lauf({
       }
 
       for (const feature of selected) {
-        ctx.spinner.start(`Creating issue for "${feature.title}"`)
+        ctx.spinner.start(`Processing "${feature.title}"`)
 
         try {
-          const issue = await createGitHubIssue(feature.title, feature.body)
+          // Search for existing issue with the same title
+          const existing = await findExistingIssue(feature.title)
+          const mappedStatus = feature.frontmatter.status
+            ? config.statusMapping[feature.frontmatter.status]
+            : undefined
 
-          // Write frontmatter immediately so re-runs don't create duplicates
-          const updated = updateFrontmatter(feature.raw, { issue: issue.number })
-          await writeFile(feature.filepath, updated)
+          if (existing) {
+            // Link existing issue instead of creating a duplicate
+            const updated = updateFrontmatter(feature.raw, { issue: existing.number })
+            await writeFile(feature.filepath, updated)
 
-          ctx.spinner.message(`Adding #${issue.number} to project...`)
-          await addToProject(issue.url, feature.frontmatter.status, statusOptions)
+            ctx.spinner.message(`Adding #${existing.number} to project...`)
+            await addToProject({
+              owner,
+              number,
+              projectId,
+              statusFieldId: statusField.id,
+              issueUrl: existing.url,
+              mappedStatus,
+              statusOptions: statusField.options,
+            })
 
-          const statusLabel = feature.frontmatter.status ? ` [${feature.frontmatter.status}]` : ''
-          ctx.spinner.stop(`Created issue #${issue.number}${statusLabel} for "${feature.title}"`)
+            const statusLabel = feature.frontmatter.status ? ` [${feature.frontmatter.status}]` : ''
+            ctx.spinner.stop(
+              `Linked existing issue #${existing.number}${statusLabel} for "${feature.title}"`
+            )
+          } else {
+            // Create new issue
+            const issue = await createGitHubIssue(feature.title, feature.body)
+
+            // Write frontmatter immediately so re-runs don't create duplicates
+            const updated = updateFrontmatter(feature.raw, { issue: issue.number })
+            await writeFile(feature.filepath, updated)
+
+            ctx.spinner.message(`Adding #${issue.number} to project...`)
+            await addToProject({
+              owner,
+              number,
+              projectId,
+              statusFieldId: statusField.id,
+              issueUrl: issue.url,
+              mappedStatus,
+              statusOptions: statusField.options,
+            })
+
+            const statusLabel = feature.frontmatter.status ? ` [${feature.frontmatter.status}]` : ''
+            ctx.spinner.stop(`Created issue #${issue.number}${statusLabel} for "${feature.title}"`)
+          }
+
           created++
         } catch (err) {
           ctx.spinner.stop()
-          ctx.logger.error(`Failed to create issue for "${feature.title}": ${err}`)
+          ctx.logger.error(`Failed to process "${feature.title}": ${err}`)
         }
       }
     }
 
     ctx.logger.newlines()
-    ctx.logger.success(`Created ${created} issue(s)`)
+    ctx.logger.success(`Processed ${created} issue(s)`)
   },
 })
