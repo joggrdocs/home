@@ -8,20 +8,36 @@
 
 <img src="./assets/banner.svg" alt="Joggr Banner" width="100%" />
 
-[Discussions](https://github.com/joggrdocs/code/discussions) · [Issues](https://github.com/joggrdocs/code/issues) · [Roadmap](https://github.com/orgs/joggrdocs/projects/9)
+[![Roadmap](https://img.shields.io/badge/Roadmap-8B5CF6?style=for-the-badge&logo=googlemaps&logoColor=white)](https://github.com/orgs/joggrdocs/projects/9)
+[![Discussions](https://img.shields.io/badge/Discussions-8B5CF6?style=for-the-badge&logo=imessage&logoColor=white)](https://github.com/joggrdocs/home/discussions)
+[![Issues](https://img.shields.io/badge/Issues-8B5CF6?style=for-the-badge&logo=github&logoColor=white)](https://github.com/joggrdocs/home/issues)
 
 </div>
 
 ## Overview
 
-Joggr scans your AI agent setup, generates coding standards from your repo, and gives you structured workflows for developing with agents like Claude Code, Cursor, and Windsurf -- keeping rules, instruction files, and context always current.
+Build the perfect AI agent setup — automatically. Joggr creates custom coding standards, configures context rules, and maintains instruction files so Claude Code, Cursor, and Windsurf work exactly how you need them to. Stop fighting your agents. Start shipping faster.
 
 **Learn more at [joggr.ai](https://www.joggr.ai)**.
 
+## Roadmap
+
+Explore what we're building. Join the conversation on any feature.
+
+| Feature                                                                           | Status                                                                                               | Discussion                                                                                                                                            |
+| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Coding Agent Setup Doctor](https://github.com/joggrdocs/home/discussions/1) | ![Released](https://img.shields.io/badge/Released-047857?style=flat-square) | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/1) |
+| [Agent Harness](https://github.com/joggrdocs/home/discussions/2)                        | ![Planned](https://img.shields.io/badge/Planned-1D4ED8?style=flat-square)   | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/2) |
+| [Coding Standards Generation](https://github.com/joggrdocs/home/discussions/12) | ![Planned](https://img.shields.io/badge/Planned-1D4ED8?style=flat-square)   | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/12) |
+| [GG Workflow](https://github.com/joggrdocs/home/discussions/18)                            | ![Planned](https://img.shields.io/badge/Planned-1D4ED8?style=flat-square)   | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/18) |
+| [Coding Agent Toolkit MCP](https://github.com/joggrdocs/home/discussions/6)  | ![Approved](https://img.shields.io/badge/Approved-B45309?style=flat-square) | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/6) |
+
+**[View full roadmap →](./docs/roadmap/overview.md)**
+
 ## Community
 
-- [Discussions](https://github.com/joggrdocs/code/discussions) -- ask questions, share ideas, and connect with other developers.
-- [Issues](https://github.com/joggrdocs/code/issues) -- report bugs or request features.
+- [Discussions](https://github.com/joggrdocs/home/discussions) -- ask questions, share ideas, and connect with other developers.
+- [Issues](https://github.com/joggrdocs/home/issues) -- report bugs or request features.
 - [Roadmap](https://github.com/orgs/joggrdocs/projects/9) -- see what we are working on.
 - [Contributing](./CONTRIBUTING.md) -- learn how to contribute.
 - [Status](https://status.joggr.io) -- check system status and uptime.
