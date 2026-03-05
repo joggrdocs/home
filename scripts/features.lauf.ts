@@ -84,7 +84,7 @@ export default lauf({
 
     try {
       if (ctx.args["dry-run"]) {
-        displayDryRunWarning(ctx.logger);
+        displayDryRunWarning();
       }
 
       // Determine sync direction

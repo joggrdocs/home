@@ -1,7 +1,6 @@
 ---
 status: Planned
 issue: 24
-discussion: 18
 productArea:
   - 🎮 gg-workflow
 ---

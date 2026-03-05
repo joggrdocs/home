@@ -1,7 +1,6 @@
 ---
 issue: 11
 status: Upcoming
-discussion: 6
 productArea:
   - 🔌 context-integration
 ---

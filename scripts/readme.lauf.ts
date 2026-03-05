@@ -74,7 +74,7 @@ export default lauf({
   },
   async run(ctx) {
     if (ctx.args["dry-run"]) {
-      displayDryRunWarning(ctx.logger);
+      displayDryRunWarning();
     }
 
     // Step 1: Read project config

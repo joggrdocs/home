@@ -1,7 +1,6 @@
 ---
 status: Released
 issue: 7
-discussion: 1
 productArea:
   - 🔧 agent-setup
 ---
