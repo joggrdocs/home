@@ -9,19 +9,15 @@ Use this exact format when creating new roadmap feature files at `docs/roadmap/f
 
 **Status:** ![<Status>](https://img.shields.io/badge/<Status>-<color>)
 
-## Summary
-
-<One or two sentences describing what the feature does.>
-
 ## Problem
 
 <What limitation, gap, or pain point this feature addresses.>
 
-## Solution
+## What we're releasing
 
 <How the feature solves the problem — the approach or architecture.>
 
-## Impact
+## Expected outcome
 
 <What users gain — the concrete benefit or outcome.>
 ```
@@ -55,19 +51,15 @@ Use these exact badge URLs based on feature status:
 
 **Status:** ![Planned](https://img.shields.io/badge/Planned-%23003366)
 
-## Summary
-
-Sub-agent orchestration setup for Joggr Agents using the same agentic loop architecture as Claude Code, Codex, OpenCode and other coding agent platforms.
-
 ## Problem
 
 In the first release, the Coding Agent Setup Doctor used a single agent to spot-check repositories for AI development setup issues, which limited the depth and consistency of findings.
 
-## Solution
+## What we're releasing
 
 Agent Harness introduces a coordinated agentic loop—similar to architectures used by Claude Code, Codex, and other coding agent platforms—allowing multiple specialized sub-agents to analyze repositories more thoroughly and validate findings collaboratively.
 
-## Impact
+## Expected outcome
 
 Users receive significantly more comprehensive and accurate setup diagnostics, with a system designed to continuously improve over time and serve as the foundation for reliable AI coding workflows.
 ```

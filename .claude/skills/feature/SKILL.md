@@ -1,5 +1,4 @@
 ---
-name: Roadmap Item
 description: Add a new item to the product roadmap. Creates the feature markdown file, updates the overview table, searches for existing GitHub issues, and optionally creates a new issue.
 disable-model-invocation: true
 ---
