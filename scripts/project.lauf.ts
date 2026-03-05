@@ -226,7 +226,7 @@ async function syncMetadata(
   config: ProjectConfig['project'],
   current: ProjectMetadata,
   dryRun: boolean,
-  ctx: Parameters<Parameters<typeof lauf>[0]['run']>[0],
+  ctx: Parameters<Parameters<typeof lauf>[0]['run']>[0]
 ): Promise<void> {
   const editArgs = ['project', 'edit', String(config.number), '--owner', config.owner]
   const changes: string[] = []
@@ -296,18 +296,12 @@ function computeFieldDiffs(configFields: ConfigField[], githubFields: GitHubFiel
 
   for (const field of configFields) {
     const ghField = githubByName.get(field.name)
-    if (!ghField) {continue}
+    if (!ghField) {
+      continue
+    }
 
     if (field.type === 'SINGLE_SELECT' && field.options) {
-      const configOptionNames = field.options.map((o) => o.name)
-      const ghOptionNames = ghField.options?.map((o) => o.name) ?? []
-
-      if (
-        configOptionNames.length !== ghOptionNames.length ||
-        configOptionNames.some((name, i) => name !== ghOptionNames[i])
-      ) {
-        toUpdate.push({ config: field, github: ghField })
-      }
+      toUpdate.push({ config: field, github: ghField })
     }
   }
 
@@ -333,7 +327,7 @@ async function createField(owner: string, number: number, field: ConfigField): P
         name: o.name,
         description: o.description ?? '',
         color: 'GRAY',
-      })),
+      }))
     )
     args.push('--single-select-options', optionsJson)
   }
@@ -349,9 +343,11 @@ async function updateFieldOptions(
   projectId: string,
   fieldId: string,
   config: ConfigField,
-  existingOptions: Array<{ id: string; name: string }>,
+  existingOptions: Array<{ id: string; name: string }>
 ): Promise<void> {
-  if (!config.options) {return}
+  if (!config.options) {
+    return
+  }
 
   const existingByName = new Map(existingOptions.map((o) => [o.name, o.id]))
 
@@ -410,7 +406,9 @@ function detectViewDrift(configViews: ConfigView[], githubViews: GitHubView[]): 
 
   for (const cv of configViews) {
     const gv = githubByName.get(cv.name)
-    if (!gv) {continue}
+    if (!gv) {
+      continue
+    }
 
     if (cv.layout !== gv.layout) {
       drifts.push({
@@ -500,7 +498,9 @@ export default lauf({
         ctx.logger.info(`Fields to delete: ${diff.toDelete.map((f) => f.name).join(', ')}`)
       }
       if (diff.toUpdate.length > 0) {
-        ctx.logger.info(`Fields to update options: ${diff.toUpdate.map((f) => f.config.name).join(', ')}`)
+        ctx.logger.info(
+          `Fields to update options: ${diff.toUpdate.map((f) => f.config.name).join(', ')}`
+        )
       }
 
       if (!dryRun) {

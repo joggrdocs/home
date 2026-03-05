@@ -1,8 +1,12 @@
 <div align="center">
 
-<img src="./assets/banner.svg" alt="Joggr Banner" width="100%" />
+# Joggr
 
 **The context engineering toolkit for developing with AI agents.**
+
+---
+
+<img src="./assets/banner.svg" alt="Joggr Banner" width="100%" />
 
 [Discussions](https://github.com/joggrdocs/code/discussions) · [Issues](https://github.com/joggrdocs/code/issues) · [Roadmap](./ROADMAP.md)
 
@@ -10,7 +14,7 @@
 
 ## Overview
 
-Joggr scans your repo, validates your AI agent setup, and keeps your standards docs and rules up to date -- so tools like Claude Code, Cursor, and Windsurf always have accurate context. It eliminates context rot, reduces token waste, and gives your agents the engineering context they need to ship correct code.
+Joggr scans your AI agent setup, generates coding standards from your repo, and gives you structured workflows for developing with agents like Claude Code, Cursor, and Windsurf -- keeping rules, instruction files, and context always current.
 
 **Learn more at [joggr.ai](https://www.joggr.ai)**.
 
