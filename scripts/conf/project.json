@@ -12,7 +12,7 @@
   "fields": [
     {
       "name": "Status",
-      "type": "SingleSelect",
+      "type": "SINGLE_SELECT",
       "options": [
         {
           "name": "Idea"
@@ -33,7 +33,7 @@
     },
     {
       "name": "Product Area",
-      "type": "MultiSelect",
+      "type": "SINGLE_SELECT",
       "options": [
         {
           "name": "🔧 agent-setup",
@@ -84,11 +84,11 @@
     },
     {
       "name": "Start date",
-      "type": ""
+      "type": "DATE"
     },
     {
       "name": "Target date",
-      "type": ""
+      "type": "DATE"
     }
   ],
   "views": [

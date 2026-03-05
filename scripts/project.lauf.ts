@@ -480,7 +480,7 @@ export default lauf({
             ctx.spinner.start(`Creating field "${field.name}"...`);
 
             const selectOptions =
-              (field.type === "SINGLE_SELECT" || field.type === "MULTI_SELECT") && field.options
+              field.type === "SINGLE_SELECT" && field.options
                 ? field.options.map((o) => ({
                     name: o.name,
                     description: o.description ?? "",
@@ -494,8 +494,7 @@ export default lauf({
               number,
               name: field.name,
               dataType: field.type,
-              singleSelectOptions: field.type === "SINGLE_SELECT" ? selectOptions : undefined,
-              multiSelectOptions: field.type === "MULTI_SELECT" ? selectOptions : undefined,
+              singleSelectOptions: selectOptions,
             });
             if (createErr) {
               ctx.spinner.stop();
@@ -643,7 +642,7 @@ function computeFieldDiffs(configFields: ConfigField[], githubFields: ProjectFie
     const gf = githubByName.get(cf.name);
     if (!gf) {
       toCreate.push(cf);
-    } else if ((cf.type === "SINGLE_SELECT" || cf.type === "MULTI_SELECT") && gf.options) {
+    } else if (cf.type === "SINGLE_SELECT" && gf.options) {
       const configOptionNames = new Set(cf.options?.map((o) => o.name) ?? []);
       const githubOptionNames = new Set(gf.options.map((o) => o.name));
 

@@ -142,11 +142,6 @@ export interface CreateProjectFieldParams {
     readonly description?: string;
     readonly color?: string;
   }>;
-  readonly multiSelectOptions?: ReadonlyArray<{
-    readonly name: string;
-    readonly description?: string;
-    readonly color?: string;
-  }>;
 }
 
 /**
@@ -460,14 +455,7 @@ export async function createGitHubClient(ctx: GitHubClientContext): Promise<Resu
         /**
          * Creates a new field in a project.
          */
-        create: async ({
-          owner,
-          number,
-          name,
-          dataType,
-          singleSelectOptions,
-          multiSelectOptions,
-        }) => {
+        create: async ({ owner, number, name, dataType, singleSelectOptions }) => {
           const args = [
             "project",
             "field-create",
@@ -481,25 +469,11 @@ export async function createGitHubClient(ctx: GitHubClientContext): Promise<Resu
           ];
 
           if (dataType === "SINGLE_SELECT" && singleSelectOptions) {
-            const optionsJson = JSON.stringify(
-              singleSelectOptions.map((o) => ({
-                name: o.name,
-                description: o.description ?? "",
-                color: o.color ?? "GRAY",
-              })),
-            );
-            args.push("--single-select-options", optionsJson);
-          }
-
-          if (dataType === "MULTI_SELECT" && multiSelectOptions) {
-            const optionsJson = JSON.stringify(
-              multiSelectOptions.map((o) => ({
-                name: o.name,
-                description: o.description ?? "",
-                color: o.color ?? "GRAY",
-              })),
-            );
-            args.push("--single-select-options", optionsJson);
+            const optionFlags = singleSelectOptions.flatMap((o) => [
+              "--single-select-options",
+              o.name,
+            ]);
+            args.push(...optionFlags);
           }
 
           const [execError] = await gh(args);
