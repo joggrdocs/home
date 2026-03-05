@@ -168,7 +168,7 @@ export default lauf({
       config.project.owner,
       config.project.repo,
       config.project.number,
-      firstView.id,
+      "3",
     );
 
     if (ctx.args.verbose) {
