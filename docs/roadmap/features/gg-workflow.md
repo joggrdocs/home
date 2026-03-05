@@ -1,6 +1,6 @@
 ---
 status: Planned
-issue:
+issue: 24
 ---
 
 # GG Workflow

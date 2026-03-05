@@ -24,7 +24,7 @@
           "color": "YELLOW"
         },
         {
-          "name": "In progress",
+          "name": "In_Progress",
           "description": "Approved and actively being worked on",
           "color": "BLUE"
         },
@@ -71,13 +71,13 @@
         "Assignees",
         "Labels"
       ],
-      "filter": "status:Todo,\"In progress\""
+      "filter": "status:Todo,In_Progress"
     }
   ],
   "statusMapping": {
     "Idea": "Idea",
-    "Planned": "Todo",
-    "Approved": "In progress",
-    "Released": "Done"
+    "Planned": "Planned",
+    "In progress": "In_Progress",
+    "Released": "Released"
   }
 }

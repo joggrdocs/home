@@ -1,6 +1,6 @@
 ---
 status: Planned
-issue:
+issue: 23
 ---
 
 # GG Plan Review

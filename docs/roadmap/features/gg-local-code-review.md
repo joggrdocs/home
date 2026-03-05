@@ -1,6 +1,6 @@
 ---
 status: Planned
-issue:
+issue: 22
 ---
 
 # GG Local Code Review

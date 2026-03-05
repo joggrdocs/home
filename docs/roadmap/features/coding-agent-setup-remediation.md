@@ -1,6 +1,6 @@
 ---
 status: Planned
-issue:
+issue: 9
 ---
 
 # Coding Agent Setup Remediation

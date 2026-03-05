@@ -1,6 +1,6 @@
 ---
 status: Planned
-issue:
+issue: 25
 ---
 
 # GG Workspace Management

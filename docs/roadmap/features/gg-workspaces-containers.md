@@ -1,6 +1,6 @@
 ---
 status: In progress
-issue:
+issue: 26
 ---
 
 # GG Workspaces: Containers

@@ -1,6 +1,6 @@
 ---
 status: In progress
-issue:
+issue: 21
 ---
 
 # GG Git Automation

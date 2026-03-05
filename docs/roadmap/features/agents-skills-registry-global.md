@@ -1,6 +1,6 @@
 ---
 status: In progress
-issue:
+issue: 3
 ---
 
 # Agents & Skills Registry: Global

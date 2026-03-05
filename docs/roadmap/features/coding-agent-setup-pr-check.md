@@ -1,6 +1,6 @@
 ---
 status: Planned
-issue:
+issue: 8
 ---
 
 # Coding Agent Setup PR Check

@@ -1,6 +1,6 @@
 ---
 status: In progress
-issue:
+issue: 11
 ---
 
 # Coding Agent Toolkit MCP (Serena)

@@ -1,6 +1,6 @@
 ---
 status: Released
-issue:
+issue: 7
 ---
 
 # Coding Agent Setup Doctor

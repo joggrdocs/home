@@ -1,6 +1,6 @@
 ---
 status: In progress
-issue:
+issue: 10
 ---
 
 # Coding Agent Statusline

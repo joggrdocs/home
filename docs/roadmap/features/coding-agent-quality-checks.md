@@ -1,6 +1,6 @@
 ---
 status: In progress
-issue:
+issue: 5
 ---
 
 # Coding Agent Quality Checks

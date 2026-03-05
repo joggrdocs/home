@@ -1,6 +1,6 @@
 ---
 status: In progress
-issue:
+issue: 4
 ---
 
 # Agents & Skills Registry: Private

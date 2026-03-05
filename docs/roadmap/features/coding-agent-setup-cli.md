@@ -1,6 +1,6 @@
 ---
 status: Planned
-issue:
+issue: 6
 ---
 
 # Coding Agent Setup CLI
