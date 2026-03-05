@@ -476,8 +476,8 @@ function buildMarkdownTable(
   viewId: string,
 ): string {
   const header = [
-    "| Feature | Status | Assignees | View |",
-    "| ------- | ------ | --------- | ---- |",
+    "| Feature | Status | View | Assignee |",
+    "| ------- | ------ | ---- | -------- |",
   ];
 
   const rows = items.map((item) => formatTableRow(item, owner, repo, projectNumber, viewId));
@@ -500,29 +500,31 @@ function formatTableRow(
   const badge = getStatusBadge(item.status);
   const featureLink = `[${item.title}](https://github.com/joggrdocs/home/issues/${item.issueNumber})`;
   const statusBadge = `![${badge.label}](https://img.shields.io/badge/${encodeURIComponent(badge.label)}-${badge.color}?style=flat-square)`;
-  const assigneesCell = formatAssignees(item.assignees);
   const projectUrl = `https://github.com/orgs/${owner}/projects/${projectNumber}/views/${viewId}?pane=issue&itemId=${item.projectItemId}&issue=${owner}%7C${repo}%7C${item.issueNumber}`;
   const viewBadge = `[![View](https://img.shields.io/badge/View-8B5CF6?style=flat-square)](${projectUrl})`;
+  const assigneeCell = formatAssignee(item.assignees);
 
-  return `| ${featureLink} | ${statusBadge} | ${assigneesCell} | ${viewBadge} |`;
+  return `| ${featureLink} | ${statusBadge} | ${viewBadge} | ${assigneeCell} |`;
 }
 
 /**
- * Formats assignees as linked avatar images.
+ * Formats assignee as a GitHub shield badge.
+ *
+ * Returns empty string if there are zero or multiple assignees.
+ * Returns a shield badge for exactly one assignee.
  *
  * @private
  */
-function formatAssignees(assignees: readonly Assignee[]): string {
-  if (assignees.length === 0) {
+function formatAssignee(assignees: readonly Assignee[]): string {
+  if (assignees.length !== 1) {
     return "";
   }
 
-  const avatars = assignees.map(
-    (a) =>
-      `<a href="${a.profileUrl}"><img src="${a.avatarUrl}" width="24" height="24" alt="${a.login}" style="border-radius: 50%;" /></a>`,
-  );
+  const assignee = assignees[0];
+  const username = `@${assignee.login}`;
+  const encodedUsername = encodeURIComponent(username);
 
-  return avatars.join(" ");
+  return `[![${username}](https://img.shields.io/badge/${encodedUsername}-black?style=flat-square&logo=github)](${assignee.profileUrl})`;
 }
 
 /**

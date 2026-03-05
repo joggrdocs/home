@@ -5,7 +5,7 @@ paths:
 
 # Testing Rules
 
-All tests use [Vitest](https://vitest.dev). Follow these conventions in every test file. See the full standard: [Testing](../../contributing/standards/typescript/testing.md).
+All tests use [Vitest](https://vitest.dev). Follow these conventions in every test file. See the full standard: [Testing](../../../docs/contributing/standards/typescript/testing.md).
 
 ## Structure
 

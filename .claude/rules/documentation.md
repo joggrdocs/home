@@ -7,7 +7,7 @@ paths:
 
 # Documentation Rules
 
-See the full standards: [Writing](../../contributing/standards/documentation/writing.md) | [Formatting](../../contributing/standards/documentation/formatting.md) | [Diagrams](../../contributing/standards/documentation/diagrams.md).
+See the full standards: [Writing](../../../docs/contributing/standards/documentation/writing.md) | [Formatting](../../../docs/contributing/standards/documentation/formatting.md) | [Diagrams](../../../docs/contributing/standards/documentation/diagrams.md).
 
 ## Principles
 
@@ -18,7 +18,7 @@ See the full standards: [Writing](../../contributing/standards/documentation/wri
 
 ## Templates
 
-Use the correct template based on document type. See [Writing Standards](../../contributing/standards/documentation/writing.md) for full templates:
+Use the correct template based on document type. See [Writing Standards](../../../docs/contributing/standards/documentation/writing.md) for full templates:
 
 | Type            | Structure                                              | Title Convention       |
 | --------------- | ------------------------------------------------------ | ---------------------- |
@@ -43,4 +43,4 @@ Use the correct template based on document type. See [Writing Standards](../../c
 ## Diagrams
 
 - Use Mermaid with Catppuccin Mocha theme
-- See [Diagram Standards](../../contributing/standards/documentation/diagrams.md) for color palette and conventions
+- See [Diagram Standards](../../../docs/contributing/standards/documentation/diagrams.md) for color palette and conventions

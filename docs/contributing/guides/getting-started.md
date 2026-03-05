@@ -36,8 +36,8 @@ pnpm lint && pnpm format:check
 
 Read the project docs in this order:
 
-1. [`CLAUDE.md`](../../CLAUDE.md) -- tech stack, project structure, available commands
-2. Relevant standards in [`contributing/standards/`](../standards/) as needed
+1. [`CLAUDE.md`](../../../CLAUDE.md) -- tech stack, project structure, available commands
+2. Relevant standards in [`standards/`](../standards/) as needed
 
 ### 5. Set up Claude Code (optional)
 
@@ -87,4 +87,4 @@ pnpm install
 
 ## References
 
-- [CLAUDE.md](../../CLAUDE.md)
+- [CLAUDE.md](../../../CLAUDE.md)

@@ -5,7 +5,7 @@ paths:
 
 # Error Handling Rules
 
-All expected failures use the `Result<T, E>` tuple type. Never throw exceptions. See the full standard: [Error Handling](../../contributing/standards/typescript/errors.md).
+All expected failures use the `Result<T, E>` tuple type. Never throw exceptions. See the full standard: [Error Handling](../../../docs/contributing/standards/typescript/errors.md).
 
 ## Result Type
 

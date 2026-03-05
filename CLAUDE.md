@@ -15,12 +15,13 @@ You are a strict functional programmer. You write pure, immutable, declarative T
 │   └── roadmap/            # Product roadmap and feature specs
 │       ├── overview.md     # Roadmap overview table
 │       └── features/       # Individual feature documents
-├── contributing/           # Standards, guides for contributors
+│   ├── contributing/       # Standards, guides for contributors
 ├── .claude/                # Claude Code configuration
 │   ├── settings.json       # Plugin and permission settings
 │   ├── rules/              # Context-aware rules
 │   └── skills/             # Claude skills
-└── assets/                 # Static assets (images, SVGs)
+└── .github/
+    └── assets/             # Static assets (images, SVGs)
 ```
 
 ## Tech Stack
@@ -43,23 +44,23 @@ pnpm format:check   # Check formatting
 
 ## Standards
 
-Detailed coding standards and step-by-step guides are in the [`contributing/`](contributing/README.md) directory:
+Detailed coding standards and step-by-step guides are in the [`docs/contributing/`](docs/contributing/README.md) directory:
 
-- [TypeScript Coding Style](contributing/standards/typescript/coding-style.md)
-- [TypeScript Design Patterns](contributing/standards/typescript/design-patterns.md)
-- [TypeScript Functions](contributing/standards/typescript/functions.md)
-- [TypeScript Naming](contributing/standards/typescript/naming.md)
-- [TypeScript Types](contributing/standards/typescript/types.md)
-- [TypeScript State](contributing/standards/typescript/state.md)
-- [TypeScript Conditionals](contributing/standards/typescript/conditionals.md)
-- [TypeScript Errors](contributing/standards/typescript/errors.md)
-- [TypeScript Testing](contributing/standards/typescript/testing.md)
-- [TypeScript Utilities](contributing/standards/typescript/utilities.md)
-- [Git Commits](contributing/standards/git-commits.md)
-- [Git Pull Requests](contributing/standards/git-pulls.md)
-- [Documentation Writing](contributing/standards/documentation/writing.md)
-- [Documentation Formatting](contributing/standards/documentation/formatting.md)
-- [Documentation Diagrams](contributing/standards/documentation/diagrams.md)
+- [TypeScript Coding Style](docs/contributing/standards/typescript/coding-style.md)
+- [TypeScript Design Patterns](docs/contributing/standards/typescript/design-patterns.md)
+- [TypeScript Functions](docs/contributing/standards/typescript/functions.md)
+- [TypeScript Naming](docs/contributing/standards/typescript/naming.md)
+- [TypeScript Types](docs/contributing/standards/typescript/types.md)
+- [TypeScript State](docs/contributing/standards/typescript/state.md)
+- [TypeScript Conditionals](docs/contributing/standards/typescript/conditionals.md)
+- [TypeScript Errors](docs/contributing/standards/typescript/errors.md)
+- [TypeScript Testing](docs/contributing/standards/typescript/testing.md)
+- [TypeScript Utilities](docs/contributing/standards/typescript/utilities.md)
+- [Git Commits](docs/contributing/standards/git-commits.md)
+- [Git Pull Requests](docs/contributing/standards/git-pulls.md)
+- [Documentation Writing](docs/contributing/standards/documentation/writing.md)
+- [Documentation Formatting](docs/contributing/standards/documentation/formatting.md)
+- [Documentation Diagrams](docs/contributing/standards/documentation/diagrams.md)
 
 When planning, designing, or architecting changes — before writing any code — consult the relevant standards:
 

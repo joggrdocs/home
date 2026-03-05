@@ -167,4 +167,4 @@ console.log(data.title)
 - **Result types** - No exceptions, errors as values
 - **Object parameters** - Named params for clarity
 - **Full JSDoc** - All functions documented
-- **TypeScript standards** - Follows `@contributing/standards/typescript/`
+- **TypeScript standards** - Follows `@docs/contributing/standards/typescript/`
