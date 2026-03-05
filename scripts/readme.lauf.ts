@@ -475,10 +475,7 @@ function buildMarkdownTable(
   projectNumber: number,
   viewId: string,
 ): string {
-  const header = [
-    "| Feature | Status | View | Assignee |",
-    "| ------- | ------ | ---- | -------- |",
-  ];
+  const header = ["| Feature | Status | Assignee |", "| ------- | ------ | -------- |"];
 
   const rows = items.map((item) => formatTableRow(item, owner, repo, projectNumber, viewId));
 
@@ -498,13 +495,12 @@ function formatTableRow(
   viewId: string,
 ): string {
   const badge = getStatusBadge(item.status);
-  const featureLink = `[${item.title}](https://github.com/joggrdocs/home/issues/${item.issueNumber})`;
-  const statusBadge = `![${badge.label}](https://img.shields.io/badge/${encodeURIComponent(badge.label)}-${badge.color}?style=flat-square)`;
   const projectUrl = `https://github.com/orgs/${owner}/projects/${projectNumber}/views/${viewId}?pane=issue&itemId=${item.projectItemId}&issue=${owner}%7C${repo}%7C${item.issueNumber}`;
-  const viewBadge = `[![View](https://img.shields.io/badge/View-8B5CF6?style=flat-square)](${projectUrl})`;
+  const featureLink = `[${item.title}](${projectUrl})`;
+  const statusBadge = `![${badge.label}](https://img.shields.io/badge/${encodeURIComponent(badge.label)}-${badge.color}?style=flat-square)`;
   const assigneeCell = formatAssignee(item.assignees);
 
-  return `| ${featureLink} | ${statusBadge} | ${viewBadge} | ${assigneeCell} |`;
+  return `| ${featureLink} | ${statusBadge} | ${assigneeCell} |`;
 }
 
 /**

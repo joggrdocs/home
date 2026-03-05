@@ -25,11 +25,11 @@ Build the perfect AI agent setup — automatically. Joggr creates custom coding 
 What we're actively working on right now:
 
 <!-- target:roadmap-table:start -->
-| Feature | Status | View | Assignee |
-| ------- | ------ | ---- | -------- |
-| [Agent Harness](https://github.com/joggrdocs/home/issues/2) | ![In Progress](https://img.shields.io/badge/In%20Progress-F59E0B?style=flat-square) | [![View](https://img.shields.io/badge/View-8B5CF6?style=flat-square)](https://github.com/orgs/joggrdocs/projects/9/views/PVTV_lADOAyJs4c4BQ0KszgJiu-M?pane=issue&itemId=PVTI_lADOAyJs4c4BQ0KszgmsstQ&issue=joggrdocs%7Chome%7C2) | [![@zrosenbauer](https://img.shields.io/badge/%40zrosenbauer-black?style=flat-square&logo=github)](https://github.com/zrosenbauer) |
-| [Coding Agent Setup CLI](https://github.com/joggrdocs/home/issues/6) | ![In Progress](https://img.shields.io/badge/In%20Progress-F59E0B?style=flat-square) | [![View](https://img.shields.io/badge/View-8B5CF6?style=flat-square)](https://github.com/orgs/joggrdocs/projects/9/views/PVTV_lADOAyJs4c4BQ0KszgJiu-M?pane=issue&itemId=PVTI_lADOAyJs4c4BQ0Kszgms50A&issue=joggrdocs%7Chome%7C6) | [![@srosenbauer](https://img.shields.io/badge/%40srosenbauer-black?style=flat-square&logo=github)](https://github.com/srosenbauer) |
-| [Coding Agent Setup Remediation](https://github.com/joggrdocs/home/issues/9) | ![In Progress](https://img.shields.io/badge/In%20Progress-F59E0B?style=flat-square) | [![View](https://img.shields.io/badge/View-8B5CF6?style=flat-square)](https://github.com/orgs/joggrdocs/projects/9/views/PVTV_lADOAyJs4c4BQ0KszgJiu-M?pane=issue&itemId=PVTI_lADOAyJs4c4BQ0Kszgms53o&issue=joggrdocs%7Chome%7C9) | [![@zrosenbauer](https://img.shields.io/badge/%40zrosenbauer-black?style=flat-square&logo=github)](https://github.com/zrosenbauer) |
+| Feature | Status | Assignee |
+| ------- | ------ | -------- |
+| [Agent Harness](https://github.com/orgs/joggrdocs/projects/9/views/PVTV_lADOAyJs4c4BQ0KszgJiu-M?pane=issue&itemId=PVTI_lADOAyJs4c4BQ0KszgmsstQ&issue=joggrdocs%7Chome%7C2) | ![In Progress](https://img.shields.io/badge/In%20Progress-e85d04?style=flat-square) | [![@zrosenbauer](https://img.shields.io/badge/%40zrosenbauer-black?style=flat-square&logo=github)](https://github.com/zrosenbauer) |
+| [Coding Agent Setup CLI](https://github.com/orgs/joggrdocs/projects/9/views/PVTV_lADOAyJs4c4BQ0KszgJiu-M?pane=issue&itemId=PVTI_lADOAyJs4c4BQ0Kszgms50A&issue=joggrdocs%7Chome%7C6) | ![In Progress](https://img.shields.io/badge/In%20Progress-e85d04?style=flat-square) | [![@srosenbauer](https://img.shields.io/badge/%40srosenbauer-black?style=flat-square&logo=github)](https://github.com/srosenbauer) |
+| [Coding Agent Setup Remediation](https://github.com/orgs/joggrdocs/projects/9/views/PVTV_lADOAyJs4c4BQ0KszgJiu-M?pane=issue&itemId=PVTI_lADOAyJs4c4BQ0Kszgms53o&issue=joggrdocs%7Chome%7C9) | ![In Progress](https://img.shields.io/badge/In%20Progress-e85d04?style=flat-square) | [![@zrosenbauer](https://img.shields.io/badge/%40zrosenbauer-black?style=flat-square&logo=github)](https://github.com/zrosenbauer) |
 <!-- target:roadmap-table:end -->
 
 **[View full roadmap →](./docs/roadmap/overview.md)**
