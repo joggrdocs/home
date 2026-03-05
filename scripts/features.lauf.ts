@@ -200,6 +200,55 @@ async function findExistingIssue(title: string): Promise<{ number: number; url: 
   return { number: exact.number, url: exact.url }
 }
 
+/**
+ * Fetches all items from the GitHub project with their status.
+ *
+ * Returns a map of issue number to status name.
+ */
+async function fetchProjectItems(
+  owner: string,
+  number: number
+): Promise<Map<number, string | null>> {
+  const { stdout } = await execFileAsync('gh', [
+    'project',
+    'item-list',
+    String(number),
+    '--owner',
+    owner,
+    '--format',
+    'json',
+    '--limit',
+    '1000',
+  ])
+
+  const data = JSON.parse(stdout) as {
+    items: Array<{
+      content: { number?: number }
+      status?: string
+    }>
+  }
+
+  const items = new Map<number, string | null>()
+  for (const item of data.items) {
+    if (item.content.number) {
+      items.set(item.content.number, item.status ?? null)
+    }
+  }
+
+  return items
+}
+
+/**
+ * Creates a reverse mapping from GitHub status to local status.
+ */
+function reverseStatusMapping(mapping: Record<string, string>): Map<string, string> {
+  const reversed = new Map<string, string>()
+  for (const [localStatus, githubStatus] of Object.entries(mapping)) {
+    reversed.set(githubStatus, localStatus)
+  }
+  return reversed
+}
+
 async function createGitHubIssue(
   title: string,
   body: string
@@ -308,196 +357,344 @@ export default lauf({
   args: {
     verbose: z.boolean().default(false).describe('Enable verbose logging'),
     'dry-run': z.boolean().default(false).describe('Preview without creating issues'),
+    direction: z
+      .enum(['to-github', 'from-github'])
+      .optional()
+      .describe('Sync direction: to-github or from-github'),
   },
   async run(ctx) {
-    const featuresDir = join(ctx.root, FEATURES_DIR)
+    let cancelled = false
 
-    // Step 1: Read project config from project.json
-    ctx.spinner.start('Reading project config...')
-    const config = await readFeaturesConfig(ctx.root)
-    const { owner, number } = config.project
-    ctx.spinner.stop(`Read config for project #${number} (${owner})`)
-
-    if (ctx.args.verbose) {
-      ctx.logger.info(`Status mapping: ${JSON.stringify(config.statusMapping)}`)
-    }
-
-    // Step 2: Scan feature files
-    if (ctx.args.verbose) {
-      ctx.logger.info(`Scanning features in ${featuresDir}`)
-    }
-
-    const files = await readdir(featuresDir)
-    const mdFiles = files.filter((f) => f.endsWith('.md')).toSorted()
-
-    if (mdFiles.length === 0) {
-      ctx.logger.warn('No feature files found')
-      return 0
-    }
-
-    ctx.logger.info(`Found ${mdFiles.length} feature file(s)`)
-
-    const features: FeatureFile[] = []
-
-    for (const filename of mdFiles) {
-      const filepath = join(featuresDir, filename)
-      const raw = await readFile(filepath, 'utf-8')
-
-      const parsed = parseFrontmatter(raw)
-      if (!parsed) {
-        ctx.logger.warn(`Skipping ${filename}: no frontmatter`)
-        continue
+    const handleInterrupt = () => {
+      if (!cancelled) {
+        cancelled = true
+        ctx.logger.newlines()
+        ctx.logger.warn('Received interrupt signal, finishing current operation...')
       }
+    }
 
-      if (parsed.frontmatter.issue) {
-        if (ctx.args.verbose) {
-          ctx.logger.info(
-            `Skipping ${filename}: already linked to issue #${parsed.frontmatter.issue}`
-          )
+    const cleanup = () => {
+      process.off('SIGINT', handleInterrupt)
+      process.off('SIGTERM', handleInterrupt)
+    }
+
+    process.on('SIGINT', handleInterrupt)
+    process.on('SIGTERM', handleInterrupt)
+
+    try {
+      // Determine sync direction
+      let direction = ctx.args.direction
+
+      if (!direction) {
+        const [promptErr, selected] = await ctx.prompts.select({
+          message: 'Select sync direction',
+          options: [
+            { value: 'to-github', label: 'To GitHub (create/update issues from local files)' },
+            { value: 'from-github', label: 'From GitHub (update local files from issues)' },
+          ],
+        })
+
+        if (promptErr?.cancelled || cancelled) {
+          ctx.logger.warn('Cancelled by user')
+          return 1
         }
-        continue
+
+        direction = selected as 'to-github' | 'from-github'
       }
 
-      const built = buildIssueBody(parsed.content)
-      if (!built) {
-        ctx.logger.warn(`Skipping ${filename}: no title found`)
-        continue
+      const featuresDir = join(ctx.root, FEATURES_DIR)
+
+      // Step 1: Read project config from project.json
+      ctx.spinner.start('Reading project config...')
+      const config = await readFeaturesConfig(ctx.root)
+      const { owner, number } = config.project
+      ctx.spinner.stop(`Read config for project #${number} (${owner})`)
+
+      if (ctx.args.verbose) {
+        ctx.logger.info(`Status mapping: ${JSON.stringify(config.statusMapping)}`)
       }
 
-      features.push({
-        filename,
-        filepath,
-        title: built.title,
-        body: built.body,
-        raw,
-        frontmatter: parsed.frontmatter,
-      })
-    }
+      // Handle from-github sync
+      if (direction === 'from-github') {
+        ctx.spinner.start('Fetching project items from GitHub...')
+        const projectItems = await fetchProjectItems(owner, number)
+        ctx.spinner.stop(`Fetched ${projectItems.size} project item(s)`)
 
-    if (features.length === 0) {
-      ctx.logger.success('All features already have issues')
-      return 0
-    }
+        if (cancelled) {
+          ctx.logger.warn('Cancelled by user')
+          return 1
+        }
 
-    ctx.logger.info(`${features.length} feature(s) need issues`)
+        ctx.spinner.start('Scanning local feature files...')
+        const files = await readdir(featuresDir)
+        const mdFiles = files.filter((f) => f.endsWith('.md')).toSorted()
 
-    if (ctx.args['dry-run']) {
-      for (const feature of features) {
-        const statusLabel = feature.frontmatter.status ? ` [${feature.frontmatter.status}]` : ''
-        ctx.logger.message(`  - ${feature.title}${statusLabel}`)
-      }
-      return 0
-    }
+        if (mdFiles.length === 0) {
+          ctx.logger.warn('No feature files found')
+          return 0
+        }
 
-    // Step 3: Fetch project state in parallel
-    ctx.spinner.start('Fetching project status options...')
-    const [projectId, statusField] = await Promise.all([
-      fetchProjectId(owner, number),
-      fetchStatusField(owner, number),
-    ])
-    ctx.spinner.stop('Fetched project status options')
+        ctx.spinner.stop(`Found ${mdFiles.length} feature file(s)`)
 
-    // Step 4: Validate that all feature statuses exist in statusMapping
-    const usedStatuses = [
-      ...new Set(features.map((f) => f.frontmatter.status).filter(Boolean)),
-    ] as string[]
+        const reverseMapping = reverseStatusMapping(config.statusMapping)
+        let updated = 0
 
-    const unmappedStatuses = usedStatuses.filter((s) => !(s in config.statusMapping))
-    if (unmappedStatuses.length > 0) {
-      ctx.logger.error(
-        `Feature statuses not found in statusMapping: ${unmappedStatuses.join(', ')}`
-      )
-      return 1
-    }
-
-    // Validate that all mapped statuses exist in the project
-    const mappedStatuses = [...new Set(usedStatuses.map((s) => config.statusMapping[s]))]
-    const missingStatuses = mappedStatuses.filter((s) => !statusField.options.has(s))
-
-    if (missingStatuses.length > 0) {
-      ctx.logger.error(`Missing project status options: ${missingStatuses.join(', ')}`)
-      return 1
-    }
-
-    // Step 5: Batch features and prompt for approval
-    const batches: FeatureFile[][] = []
-    for (let i = 0; i < features.length; i += BATCH_SIZE) {
-      batches.push(features.slice(i, i + BATCH_SIZE))
-    }
-
-    let created = 0
-
-    for (let i = 0; i < batches.length; i++) {
-      const batch = batches[i]
-
-      const selected = await selectFromBatch(ctx, batch, i, batches.length)
-      if (selected.length === 0) {
-        ctx.logger.warn(`Skipped batch ${i + 1}`)
-        continue
-      }
-
-      for (const feature of selected) {
-        ctx.spinner.start(`Processing "${feature.title}"`)
-
-        try {
-          // Search for existing issue with the same title
-          const existing = await findExistingIssue(feature.title)
-          const mappedStatus = feature.frontmatter.status
-            ? config.statusMapping[feature.frontmatter.status]
-            : undefined
-
-          if (existing) {
-            // Link existing issue instead of creating a duplicate
-            const updated = updateFrontmatter(feature.raw, { issue: existing.number })
-            await writeFile(feature.filepath, updated)
-
-            ctx.spinner.message(`Adding #${existing.number} to project...`)
-            await addToProject({
-              owner,
-              number,
-              projectId,
-              statusFieldId: statusField.id,
-              issueUrl: existing.url,
-              mappedStatus,
-              statusOptions: statusField.options,
-            })
-
-            const statusLabel = feature.frontmatter.status ? ` [${feature.frontmatter.status}]` : ''
-            ctx.spinner.stop(
-              `Linked existing issue #${existing.number}${statusLabel} for "${feature.title}"`
-            )
-          } else {
-            // Create new issue
-            const issue = await createGitHubIssue(feature.title, feature.body)
-
-            // Write frontmatter immediately so re-runs don't create duplicates
-            const updated = updateFrontmatter(feature.raw, { issue: issue.number })
-            await writeFile(feature.filepath, updated)
-
-            ctx.spinner.message(`Adding #${issue.number} to project...`)
-            await addToProject({
-              owner,
-              number,
-              projectId,
-              statusFieldId: statusField.id,
-              issueUrl: issue.url,
-              mappedStatus,
-              statusOptions: statusField.options,
-            })
-
-            const statusLabel = feature.frontmatter.status ? ` [${feature.frontmatter.status}]` : ''
-            ctx.spinner.stop(`Created issue #${issue.number}${statusLabel} for "${feature.title}"`)
+        for (const filename of mdFiles) {
+          if (cancelled) {
+            ctx.logger.warn('Cancelled by user')
+            break
           }
 
-          created++
-        } catch (err) {
-          ctx.spinner.stop()
-          ctx.logger.error(`Failed to process "${feature.title}": ${err}`)
+          const filepath = join(featuresDir, filename)
+          const raw = await readFile(filepath, 'utf-8')
+
+          const parsed = parseFrontmatter(raw)
+          if (!parsed) {
+            if (ctx.args.verbose) {
+              ctx.logger.warn(`Skipping ${filename}: no frontmatter`)
+            }
+            continue
+          }
+
+          const issueNumber = parsed.frontmatter.issue
+          if (!issueNumber) {
+            if (ctx.args.verbose) {
+              ctx.logger.info(`Skipping ${filename}: no linked issue`)
+            }
+            continue
+          }
+
+          const githubStatus = projectItems.get(issueNumber)
+          if (githubStatus === undefined) {
+            if (ctx.args.verbose) {
+              ctx.logger.warn(`Issue #${issueNumber} not found in project`)
+            }
+            continue
+          }
+
+          const localStatus = githubStatus ? reverseMapping.get(githubStatus) : undefined
+          if (localStatus === parsed.frontmatter.status) {
+            if (ctx.args.verbose) {
+              ctx.logger.info(`${filename}: status already in sync`)
+            }
+            continue
+          }
+
+          if (ctx.args['dry-run']) {
+            const fromLabel = parsed.frontmatter.status ?? '(none)'
+            const toLabel = localStatus ?? '(none)'
+            ctx.logger.message(`${filename}: ${fromLabel} → ${toLabel}`)
+            updated++
+          } else {
+            const updatedContent = updateFrontmatter(raw, { status: localStatus })
+            await writeFile(filepath, updatedContent)
+
+            const statusLabel = localStatus ? ` [${localStatus}]` : ''
+            ctx.logger.success(`Updated ${filename}${statusLabel}`)
+            updated++
+          }
+        }
+
+        ctx.logger.newlines()
+        ctx.logger.success(`Updated ${updated} file(s)`)
+        return 0
+      }
+
+      // Step 2: Scan feature files
+      if (ctx.args.verbose) {
+        ctx.logger.info(`Scanning features in ${featuresDir}`)
+      }
+
+      const files = await readdir(featuresDir)
+      const mdFiles = files.filter((f) => f.endsWith('.md')).toSorted()
+
+      if (mdFiles.length === 0) {
+        ctx.logger.warn('No feature files found')
+        return 0
+      }
+
+      ctx.logger.info(`Found ${mdFiles.length} feature file(s)`)
+
+      const features: FeatureFile[] = []
+
+      for (const filename of mdFiles) {
+        const filepath = join(featuresDir, filename)
+        const raw = await readFile(filepath, 'utf-8')
+
+        const parsed = parseFrontmatter(raw)
+        if (!parsed) {
+          ctx.logger.warn(`Skipping ${filename}: no frontmatter`)
+          continue
+        }
+
+        if (parsed.frontmatter.issue) {
+          if (ctx.args.verbose) {
+            ctx.logger.info(
+              `Skipping ${filename}: already linked to issue #${parsed.frontmatter.issue}`
+            )
+          }
+          continue
+        }
+
+        const built = buildIssueBody(parsed.content)
+        if (!built) {
+          ctx.logger.warn(`Skipping ${filename}: no title found`)
+          continue
+        }
+
+        features.push({
+          filename,
+          filepath,
+          title: built.title,
+          body: built.body,
+          raw,
+          frontmatter: parsed.frontmatter,
+        })
+      }
+
+      if (features.length === 0) {
+        ctx.logger.success('All features already have issues')
+        return 0
+      }
+
+      ctx.logger.info(`${features.length} feature(s) need issues`)
+
+      if (ctx.args['dry-run']) {
+        for (const feature of features) {
+          const statusLabel = feature.frontmatter.status ? ` [${feature.frontmatter.status}]` : ''
+          ctx.logger.message(`  - ${feature.title}${statusLabel}`)
+        }
+        return 0
+      }
+
+      // Step 3: Fetch project state in parallel
+      ctx.spinner.start('Fetching project status options...')
+      const [projectId, statusField] = await Promise.all([
+        fetchProjectId(owner, number),
+        fetchStatusField(owner, number),
+      ])
+      ctx.spinner.stop('Fetched project status options')
+
+      // Step 4: Validate that all feature statuses exist in statusMapping
+      const usedStatuses = [
+        ...new Set(features.map((f) => f.frontmatter.status).filter(Boolean)),
+      ] as string[]
+
+      const unmappedStatuses = usedStatuses.filter((s) => !(s in config.statusMapping))
+      if (unmappedStatuses.length > 0) {
+        ctx.logger.error(
+          `Feature statuses not found in statusMapping: ${unmappedStatuses.join(', ')}`
+        )
+        return 1
+      }
+
+      // Validate that all mapped statuses exist in the project
+      const mappedStatuses = [...new Set(usedStatuses.map((s) => config.statusMapping[s]))]
+      const missingStatuses = mappedStatuses.filter((s) => !statusField.options.has(s))
+
+      if (missingStatuses.length > 0) {
+        ctx.logger.error(`Missing project status options: ${missingStatuses.join(', ')}`)
+        return 1
+      }
+
+      // Step 5: Batch features and prompt for approval
+      const batches: FeatureFile[][] = []
+      for (let i = 0; i < features.length; i += BATCH_SIZE) {
+        batches.push(features.slice(i, i + BATCH_SIZE))
+      }
+
+      let created = 0
+
+      for (let i = 0; i < batches.length; i++) {
+        if (cancelled) {
+          ctx.logger.warn('Cancelled by user')
+          break
+        }
+
+        const batch = batches[i]
+
+        const selected = await selectFromBatch(ctx, batch, i, batches.length)
+        if (selected.length === 0) {
+          ctx.logger.warn(`Skipped batch ${i + 1}`)
+          continue
+        }
+
+        for (const feature of selected) {
+          if (cancelled) {
+            ctx.logger.warn('Cancelled by user')
+            break
+          }
+
+          ctx.spinner.start(`Processing "${feature.title}"`)
+
+          try {
+            // Search for existing issue with the same title
+            const existing = await findExistingIssue(feature.title)
+            const mappedStatus = feature.frontmatter.status
+              ? config.statusMapping[feature.frontmatter.status]
+              : undefined
+
+            if (existing) {
+              // Link existing issue instead of creating a duplicate
+              const updated = updateFrontmatter(feature.raw, { issue: existing.number })
+              await writeFile(feature.filepath, updated)
+
+              ctx.spinner.message(`Adding #${existing.number} to project...`)
+              await addToProject({
+                owner,
+                number,
+                projectId,
+                statusFieldId: statusField.id,
+                issueUrl: existing.url,
+                mappedStatus,
+                statusOptions: statusField.options,
+              })
+
+              const statusLabel = feature.frontmatter.status
+                ? ` [${feature.frontmatter.status}]`
+                : ''
+              ctx.spinner.stop(
+                `Linked existing issue #${existing.number}${statusLabel} for "${feature.title}"`
+              )
+            } else {
+              // Create new issue
+              const issue = await createGitHubIssue(feature.title, feature.body)
+
+              // Write frontmatter immediately so re-runs don't create duplicates
+              const updated = updateFrontmatter(feature.raw, { issue: issue.number })
+              await writeFile(feature.filepath, updated)
+
+              ctx.spinner.message(`Adding #${issue.number} to project...`)
+              await addToProject({
+                owner,
+                number,
+                projectId,
+                statusFieldId: statusField.id,
+                issueUrl: issue.url,
+                mappedStatus,
+                statusOptions: statusField.options,
+              })
+
+              const statusLabel = feature.frontmatter.status
+                ? ` [${feature.frontmatter.status}]`
+                : ''
+              ctx.spinner.stop(
+                `Created issue #${issue.number}${statusLabel} for "${feature.title}"`
+              )
+            }
+
+            created++
+          } catch (err) {
+            ctx.spinner.stop()
+            ctx.logger.error(`Failed to process "${feature.title}": ${err}`)
+          }
         }
       }
-    }
 
-    ctx.logger.newlines()
-    ctx.logger.success(`Processed ${created} issue(s)`)
+      ctx.logger.newlines()
+      ctx.logger.success(`Processed ${created} issue(s)`)
+    } finally {
+      cleanup()
+    }
   },
 })

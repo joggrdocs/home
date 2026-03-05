@@ -1,5 +1,4 @@
 ---
-status: In progress
 issue: 26
 ---
 
