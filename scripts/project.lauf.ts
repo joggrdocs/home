@@ -331,9 +331,24 @@ export default lauf({
           return 1;
         }
 
-        // Create backup and apply
+        // Create backup of local file before overwriting from GitHub
         ctx.spinner.start("Creating backup...");
-        const backupPath = await backupProjectConfig(ctx.root);
+        const backup = createBackup({
+          root: ctx.root,
+          namespace: {
+            owner,
+            project: number,
+          },
+        });
+        const [backupError, backupPath] = await backup.local.file({
+          sourcePath: join(ctx.root, "project.json"),
+          backupName: "project",
+        });
+        if (backupError) {
+          ctx.spinner.stop();
+          ctx.logger.error(`Failed to create backup: ${backupError.message}`);
+          return 1;
+        }
         ctx.spinner.stop(`Backup created at ${backupPath}`);
 
         ctx.spinner.start("Writing project.json...");
@@ -377,6 +392,29 @@ export default lauf({
         ctx.logger.info(`Project ID: ${metadata.id}`);
         ctx.logger.info(`Fields: ${fields.map((f) => f.name).join(", ")}`);
         ctx.logger.info(`Views: ${views.map((v) => v.name).join(", ")}`);
+      }
+
+      // Create backup of GitHub state before pushing local changes
+      if (!dryRun) {
+        ctx.spinner.start("Creating backup of GitHub state...");
+        const backup = createBackup({
+          root: ctx.root,
+          namespace: {
+            owner,
+            project: number,
+          },
+        });
+        const [backupError, backupPath] = await backup.github.project({
+          github,
+          owner,
+          project: number,
+        });
+        if (backupError) {
+          ctx.spinner.stop();
+          ctx.logger.error(`Failed to create backup: ${backupError.message}`);
+          return 1;
+        }
+        ctx.spinner.stop(`Backup created at ${backupPath}`);
       }
 
       // Step 3: Sync metadata
@@ -737,24 +775,4 @@ async function writeProjectConfig(root: string, config: ProjectConfig): Promise<
   const path = join(root, "project.json");
   const content = JSON.stringify(config, null, 2) + "\n";
   await writeFile(path, content);
-}
-
-/**
- * Creates a timestamped backup of project.json.
- *
- * @returns The backup file path
- *
- * @private
- */
-async function backupProjectConfig(root: string): Promise<string> {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").split("T").join("_");
-  const backupDir = join(root, ".backups");
-  const backupPath = join(backupDir, `project_${timestamp}.json`);
-
-  await mkdir(backupDir, { recursive: true });
-
-  const srcPath = join(root, "project.json");
-  await copyFile(srcPath, backupPath);
-
-  return backupPath;
 }
