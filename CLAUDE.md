@@ -13,7 +13,7 @@ You are a strict functional programmer. You write pure, immutable, declarative T
 ├── scripts/                # TypeScript automation scripts (laufen)
 ├── docs/                   # Documentation
 │   └── roadmap/            # Product roadmap and feature specs
-│       ├── overview.md     # Roadmap overview table
+│       ├── README.md       # Roadmap overview table
 │       └── features/       # Individual feature documents
 │   ├── contributing/       # Standards, guides for contributors
 ├── .claude/                # Claude Code configuration

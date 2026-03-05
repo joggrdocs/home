@@ -96,7 +96,7 @@ The status badge colors follow a darkwave/synthwave palette:
 
 ### Step 6: Update Overview Table
 
-Append a new row to the table in `docs/roadmap/overview.md`. The row format is:
+Append a new row to the table in `docs/roadmap/README.md`. The row format is:
 
 ```
 | [<Title>](./features/<kebab-case-name>.md) | <Summary> | ![<Status>](https://img.shields.io/badge/<Status>-<color>) | <issue-link-or-dash> |
