@@ -36,30 +36,30 @@ Every feature file starts with YAML frontmatter containing:
 
 ## Status Badges
 
-Status values and badge colors are defined in `scripts/conf/project.json` under the `Status` field. Use these exact badge URLs based on feature status:
+Status badge colors follow a darkwave/synthwave palette. Use these exact badge URLs based on feature status:
 
-### Idea (purple)
-
-```
-![Idea](https://img.shields.io/badge/Idea-%23663399)
-```
-
-### Planned (yellow/gold)
+### Idea (electric purple)
 
 ```
-![Planned](https://img.shields.io/badge/Planned-%23665500)
+![Idea](https://img.shields.io/badge/Idea-%238a04ed)
 ```
 
-### In progress (blue)
+### Planned (imperial blue)
 
 ```
-![In progress](https://img.shields.io/badge/In%20progress-%23003366)
+![Planned](https://img.shields.io/badge/Planned-%230C1565)
 ```
 
-### Released (dark green)
+### In progress (burnt orange)
 
 ```
-![Released](https://img.shields.io/badge/Released-%23006400)
+![In progress](https://img.shields.io/badge/In%20progress-%23e85d04)
+```
+
+### Released (dark teal)
+
+```
+![Released](https://img.shields.io/badge/Released-%2300a67e)
 ```
 
 ## Example: Agent Harness

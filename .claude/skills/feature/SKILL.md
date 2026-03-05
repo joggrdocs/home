@@ -85,14 +85,14 @@ issue: <issue number or empty>
 ---
 ```
 
-The status badge colors (derived from `scripts/conf/project.json` field colors) are:
+The status badge colors follow a darkwave/synthwave palette:
 
 | Status | Color | Badge |
 |--------|-------|-------|
-| Idea | PURPLE | `![Idea](https://img.shields.io/badge/Idea-%23663399)` |
-| Planned | YELLOW | `![Planned](https://img.shields.io/badge/Planned-%23665500)` |
-| In progress | BLUE | `![In progress](https://img.shields.io/badge/In%20progress-%23003366)` |
-| Released | GREEN | `![Released](https://img.shields.io/badge/Released-%23006400)` |
+| Idea | Electric Purple | `![Idea](https://img.shields.io/badge/Idea-%238a04ed)` |
+| Planned | Imperial Blue | `![Planned](https://img.shields.io/badge/Planned-%230C1565)` |
+| In progress | Burnt Orange | `![In progress](https://img.shields.io/badge/In%20progress-%23e85d04)` |
+| Released | Dark Teal | `![Released](https://img.shields.io/badge/Released-%2300a67e)` |
 
 ### Step 6: Update Overview Table
 

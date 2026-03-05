@@ -534,16 +534,16 @@ function formatAssignee(assignees: readonly Assignee[]): string {
  */
 function getStatusBadge(status: string): StatusBadge {
   const badges: Record<string, StatusBadge> = {
-    Idea: { label: "Idea", color: "9CA3AF" },
-    Upcoming: { label: "Upcoming", color: "3B82F6" },
-    Planned: { label: "Planned", color: "1D4ED8" },
-    "In progress": { label: "In Progress", color: "F59E0B" },
-    Released: { label: "Released", color: "047857" },
+    Idea: { label: "Idea", color: "8a04ed" },
+    Upcoming: { label: "Upcoming", color: "0C1565" },
+    Planned: { label: "Planned", color: "0C1565" },
+    "In progress": { label: "In Progress", color: "e85d04" },
+    Released: { label: "Released", color: "00a67e" },
   };
 
   const badge = badges[status];
   if (!badge) {
-    return { label: status, color: "6B7280" };
+    return { label: status, color: "5a347b" };
   }
 
   return badge;
