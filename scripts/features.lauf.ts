@@ -1,9 +1,10 @@
-import { copyFile, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { lauf, z } from "laufen";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 
+import { createBackup } from "./lib/backup.js";
 import { createGitHubClient } from "./lib/github-client.js";
 
 const FEATURES_DIR = "docs/roadmap/features";
@@ -293,9 +294,25 @@ export default lauf({
           return 1;
         }
 
-        // Step 4: Create backup
+        // Step 4: Create backup of local files before overwriting from GitHub
         ctx.spinner.start("Creating backup...");
-        const backupPath = await backupFeaturesDirectory(ctx.root, featuresDir);
+        const backup = createBackup({
+          root: ctx.root,
+          namespace: {
+            owner,
+            project: number,
+          },
+        });
+        const [backupError, backupPath] = await backup.local.directory({
+          sourcePath: featuresDir,
+          backupName: "features",
+          fileExtension: ".md",
+        });
+        if (backupError) {
+          ctx.spinner.stop();
+          ctx.logger.error(`Failed to create backup: ${backupError.message}`);
+          return 1;
+        }
         ctx.spinner.stop(`Backup created at ${backupPath}`);
 
         // Step 5: Apply changes
@@ -461,7 +478,28 @@ export default lauf({
         return 1;
       }
 
-      // Step 3: Fetch project state in parallel
+      // Step 3: Create backup of GitHub state before pushing local changes
+      ctx.spinner.start("Creating backup of GitHub state...");
+      const backup = createBackup({
+        root: ctx.root,
+        namespace: {
+          owner,
+          project: number,
+        },
+      });
+      const [backupError, backupPath] = await backup.github.features({
+        github,
+        owner,
+        project: number,
+      });
+      if (backupError) {
+        ctx.spinner.stop();
+        ctx.logger.error(`Failed to create backup: ${backupError.message}`);
+        return 1;
+      }
+      ctx.spinner.stop(`Backup created at ${backupPath}`);
+
+      // Step 4: Fetch project state in parallel
       ctx.spinner.start("Fetching project field options...");
       const [[projectError, projectData], [fieldsError, fieldsData]] = await Promise.all([
         github.projects.get({ owner, number }),
@@ -778,30 +816,4 @@ function reverseStatusMapping(mapping: Record<string, string>): Map<string, stri
     reversed.set(githubStatus, localStatus);
   }
   return reversed;
-}
-
-/**
- * Creates a timestamped backup of the features directory.
- *
- * @returns The backup directory path
- *
- * @private
- */
-async function backupFeaturesDirectory(root: string, featuresDir: string): Promise<string> {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").split("T").join("_");
-  const backupDir = join(root, ".backups", `features_${timestamp}`);
-
-  await mkdir(backupDir, { recursive: true });
-
-  const files = await readdir(featuresDir);
-  const mdFiles = files.filter((f) => f.endsWith(".md"));
-
-  for (const file of mdFiles) {
-    const srcPath = join(featuresDir, file);
-    const dstPath = join(backupDir, file);
-    // eslint-disable-next-line no-await-in-loop
-    await copyFile(srcPath, dstPath);
-  }
-
-  return backupDir;
 }

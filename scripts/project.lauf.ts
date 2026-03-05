@@ -1,8 +1,9 @@
-import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { lauf, z } from "laufen";
 
+import { createBackup } from "./lib/backup.js";
 import { createGitHubClient } from "./lib/github-client.js";
 import type { ProjectField, ProjectView } from "./lib/github-client.js";
 

@@ -1,9 +1,11 @@
-import { copyFile, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { readFile, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { lauf, z } from "laufen";
 import { parse as parseYaml } from "yaml";
 
+import { createBackup } from "./lib/backup.js";
+import { displayDiff, type DiffChange } from "./lib/diff.js";
 import type { ProjectItem } from "./lib/github-client.js";
 import { createGitHubClient } from "./lib/github-client.js";
 
@@ -198,6 +200,10 @@ export default lauf({
       return 0;
     }
 
+    // Display diff of changes
+    const changes = buildDiffChanges(roadmapItems);
+    displayDiff(ctx.logger, changes, `Roadmap table update (${roadmapItems.length} item(s))`);
+
     if (ctx.args["dry-run"]) {
       ctx.logger.warn("Dry run: no changes applied");
       return 0;
@@ -218,7 +224,17 @@ export default lauf({
     }
 
     ctx.spinner.start("Creating backup...");
-    const [backupError, backupPath] = await backupReadme(ctx.root);
+    const backup = createBackup({
+      root: ctx.root,
+      namespace: {
+        owner: config.project.owner,
+        project: config.project.number,
+      },
+    });
+    const [backupError, backupPath] = await backup.local.file({
+      sourcePath: join(ctx.root, README_PATH),
+      backupName: "README",
+    });
     if (backupError) {
       ctx.spinner.stop();
       ctx.logger.error(`Failed to create backup: ${backupError.message}`);
@@ -562,29 +578,6 @@ async function writeReadme(path: string, content: string): Promise<[Error, null]
 }
 
 /**
- * Creates a timestamped backup of README.md.
- *
- * @private
- */
-async function backupReadme(root: string): Promise<[Error, null] | [null, string]> {
-  try {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-").split("T").join("_");
-    const backupDir = join(root, ".backups");
-    const backupPath = join(backupDir, `README_${timestamp}.md`);
-
-    await mkdir(backupDir, { recursive: true });
-
-    const srcPath = join(root, "README.md");
-    await copyFile(srcPath, backupPath);
-
-    return [null, backupPath];
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return [new Error(`Failed to backup README: ${message}`), null];
-  }
-}
-
-/**
  * Replaces content between target markers in README.
  *
  * @private
@@ -609,4 +602,25 @@ function replaceTableContent(readme: string, table: string): [Error, null] | [nu
   const after = readme.slice(endIdx);
 
   return [null, `${before}\n${table}\n${after}`];
+}
+
+/**
+ * Builds diff changes from roadmap items for display.
+ *
+ * @private
+ */
+function buildDiffChanges(items: readonly RoadmapItem[]): readonly DiffChange[] {
+  const changes: DiffChange[] = [];
+
+  for (const item of items) {
+    const assigneesText =
+      item.assignees.length > 0 ? ` (${item.assignees.map((a) => `@${a.login}`).join(", ")})` : "";
+    changes.push({
+      type: "modify",
+      label: item.title,
+      detail: `${item.status}${assigneesText}`,
+    });
+  }
+
+  return changes;
 }
