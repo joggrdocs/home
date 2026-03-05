@@ -1,5 +1,5 @@
 import { execFile, spawn } from 'node:child_process'
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
 
@@ -426,131 +426,308 @@ function detectViewDrift(configViews: ConfigView[], githubViews: GitHubView[]): 
   return drifts
 }
 
+function convertGitHubFieldToConfig(field: GitHubField): ConfigField | null {
+  if (BUILT_IN_FIELDS.has(field.name)) {
+    return null
+  }
+
+  const config: ConfigField = {
+    name: field.name,
+    type: field.type.replace('ProjectV2', '').replace('Field', ''),
+  }
+
+  if (field.options) {
+    config.options = field.options.map((opt) => ({ name: opt.name }))
+  }
+
+  return config
+}
+
+function convertGitHubViewToConfig(view: GitHubView): ConfigView {
+  const groupBy = view.groupByFields.length > 0 ? view.groupByFields[0].name : null
+  const sortBy =
+    view.sortByFields.length > 0
+      ? {
+          field: view.sortByFields[0].field.name,
+          direction: view.sortByFields[0].direction,
+        }
+      : null
+
+  const config: ConfigView = {
+    name: view.name,
+    layout: view.layout,
+    groupBy,
+    sortBy,
+    fields: view.visibleFields.map((f) => f.name),
+  }
+
+  if (view.filter) {
+    config.filter = view.filter
+  }
+
+  return config
+}
+
+async function writeProjectConfig(root: string, config: ProjectConfig): Promise<void> {
+  const json = JSON.stringify(config, null, 2) + '\n'
+  await writeFile(join(root, 'project.json'), json)
+}
+
 // --- Main Script ---
 
 export default lauf({
-  description: 'Syncs GitHub Project v2 from project.json',
+  description: 'Syncs GitHub Project v2 configuration',
   args: {
     verbose: z.boolean().default(false).describe('Enable verbose logging'),
     'dry-run': z.boolean().default(false).describe('Preview changes without applying'),
+    direction: z
+      .enum(['to-github', 'from-github'])
+      .optional()
+      .describe('Sync direction: to-github or from-github'),
   },
   async run(ctx) {
-    const dryRun = ctx.args['dry-run']
+    let cancelled = false
 
-    if (dryRun) {
-      ctx.logger.warn('Dry run mode: no changes will be applied')
+    const handleInterrupt = () => {
+      if (!cancelled) {
+        cancelled = true
+        ctx.logger.newlines()
+        ctx.logger.warn('Received interrupt signal, finishing current operation...')
+      }
     }
 
-    // Step 1: Read config
-    ctx.spinner.start('Reading project config...')
-    const config = await readProjectConfig(ctx.root)
-    ctx.spinner.stop(`Read config for project #${config.project.number} (${config.project.owner})`)
-
-    const { owner, number } = config.project
-
-    // Step 2: Fetch current state (parallel)
-    ctx.spinner.start('Fetching current project state...')
-    const [metadata, fields, views] = await Promise.all([
-      fetchProjectMetadata(owner, number),
-      fetchProjectFields(owner, number),
-      fetchProjectViews(owner, number),
-    ])
-    ctx.spinner.stop('Fetched project state')
-
-    if (ctx.args.verbose) {
-      ctx.logger.info(`Project ID: ${metadata.id}`)
-      ctx.logger.info(`Fields: ${fields.map((f) => f.name).join(', ')}`)
-      ctx.logger.info(`Views: ${views.map((v) => v.name).join(', ')}`)
+    const cleanup = () => {
+      process.off('SIGINT', handleInterrupt)
+      process.off('SIGTERM', handleInterrupt)
     }
 
-    // Step 3: Sync metadata
-    ctx.logger.newlines()
-    ctx.logger.info('── Metadata ──')
-    await syncMetadata(config.project, metadata, dryRun, ctx)
+    process.on('SIGINT', handleInterrupt)
+    process.on('SIGTERM', handleInterrupt)
 
-    // Step 4: Sync fields
-    ctx.logger.newlines()
-    ctx.logger.info('── Fields ──')
-    const diff = computeFieldDiffs(config.fields, fields)
+    try {
+      const dryRun = ctx.args['dry-run']
 
-    if (diff.toCreate.length === 0 && diff.toDelete.length === 0 && diff.toUpdate.length === 0) {
-      ctx.logger.success('Fields are up to date')
-    } else {
-      if (diff.toCreate.length > 0) {
-        ctx.logger.info(`Fields to create: ${diff.toCreate.map((f) => f.name).join(', ')}`)
-      }
-      if (diff.toDelete.length > 0) {
-        ctx.logger.info(`Fields to delete: ${diff.toDelete.map((f) => f.name).join(', ')}`)
-      }
-      if (diff.toUpdate.length > 0) {
-        ctx.logger.info(
-          `Fields to update options: ${diff.toUpdate.map((f) => f.config.name).join(', ')}`
-        )
+      if (dryRun) {
+        ctx.logger.warn('Dry run mode: no changes will be applied')
       }
 
-      if (!dryRun) {
-        // Delete fields (with confirmation)
+      // Determine sync direction
+      let direction = ctx.args.direction
+
+      if (!direction) {
+        const [promptErr, selected] = await ctx.prompts.select({
+          message: 'Select sync direction',
+          options: [
+            { value: 'to-github', label: 'To GitHub (update GitHub from local config)' },
+            { value: 'from-github', label: 'From GitHub (update local config from GitHub)' },
+          ],
+        })
+
+        if (promptErr?.cancelled || cancelled) {
+          ctx.logger.warn('Cancelled by user')
+          return 1
+        }
+
+        direction = selected as 'to-github' | 'from-github'
+      }
+
+      // Step 1: Read config
+      ctx.spinner.start('Reading project config...')
+      const config = await readProjectConfig(ctx.root)
+      ctx.spinner.stop(
+        `Read config for project #${config.project.number} (${config.project.owner})`
+      )
+
+      const { owner, number } = config.project
+
+      // Handle from-github sync
+      if (direction === 'from-github') {
+        if (cancelled) {
+          ctx.logger.warn('Cancelled by user')
+          return 1
+        }
+
+        ctx.spinner.start('Fetching project state from GitHub...')
+        const [metadata, fields, views] = await Promise.all([
+          fetchProjectMetadata(owner, number),
+          fetchProjectFields(owner, number),
+          fetchProjectViews(owner, number),
+        ])
+        ctx.spinner.stop('Fetched project state')
+
+        if (cancelled) {
+          ctx.logger.warn('Cancelled by user')
+          return 1
+        }
+
+        const customFields = fields
+          .map(convertGitHubFieldToConfig)
+          .filter((f): f is ConfigField => f !== null)
+        const configViews = views.map(convertGitHubViewToConfig)
+
+        const updatedConfig: ProjectConfig = {
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          project: {
+            owner,
+            number,
+            title: metadata.title,
+            description: metadata.shortDescription,
+            visibility: metadata.public ? 'PUBLIC' : 'PRIVATE',
+            readme: metadata.readme,
+          },
+          fields: customFields,
+          views: configViews,
+          statusMapping: config.statusMapping ?? {},
+        }
+
+        if (dryRun) {
+          ctx.logger.info('Dry run: would update project.json with:')
+          ctx.logger.info(`  Fields: ${customFields.map((f) => f.name).join(', ')}`)
+          ctx.logger.info(`  Views: ${configViews.map((v) => v.name).join(', ')}`)
+          ctx.logger.info(`  Visibility: ${updatedConfig.project.visibility}`)
+        } else {
+          ctx.spinner.start('Writing project.json...')
+          await writeProjectConfig(ctx.root, updatedConfig)
+          ctx.spinner.stop('Updated project.json')
+          ctx.logger.success('Project config synced from GitHub')
+        }
+
+        return 0
+      }
+
+      // Step 2: Fetch current state (parallel)
+      ctx.spinner.start('Fetching current project state...')
+      const [metadata, fields, views] = await Promise.all([
+        fetchProjectMetadata(owner, number),
+        fetchProjectFields(owner, number),
+        fetchProjectViews(owner, number),
+      ])
+      ctx.spinner.stop('Fetched project state')
+
+      if (cancelled) {
+        ctx.logger.warn('Cancelled by user')
+        return 1
+      }
+
+      if (ctx.args.verbose) {
+        ctx.logger.info(`Project ID: ${metadata.id}`)
+        ctx.logger.info(`Fields: ${fields.map((f) => f.name).join(', ')}`)
+        ctx.logger.info(`Views: ${views.map((v) => v.name).join(', ')}`)
+      }
+
+      // Step 3: Sync metadata
+      ctx.logger.newlines()
+      ctx.logger.info('── Metadata ──')
+      await syncMetadata(config.project, metadata, dryRun, ctx)
+
+      if (cancelled) {
+        ctx.logger.warn('Cancelled by user')
+        return 1
+      }
+
+      // Step 4: Sync fields
+      ctx.logger.newlines()
+      ctx.logger.info('── Fields ──')
+      const diff = computeFieldDiffs(config.fields, fields)
+
+      if (cancelled) {
+        ctx.logger.warn('Cancelled by user')
+        return 1
+      }
+
+      if (diff.toCreate.length === 0 && diff.toDelete.length === 0 && diff.toUpdate.length === 0) {
+        ctx.logger.success('Fields are up to date')
+      } else {
+        if (diff.toCreate.length > 0) {
+          ctx.logger.info(`Fields to create: ${diff.toCreate.map((f) => f.name).join(', ')}`)
+        }
         if (diff.toDelete.length > 0) {
-          const [err, confirmed] = await ctx.prompts.confirm({
-            message: `Delete ${diff.toDelete.length} field(s): ${diff.toDelete.map((f) => f.name).join(', ')}?`,
-            initialValue: false,
-          })
+          ctx.logger.info(`Fields to delete: ${diff.toDelete.map((f) => f.name).join(', ')}`)
+        }
+        if (diff.toUpdate.length > 0) {
+          ctx.logger.info(
+            `Fields to update options: ${diff.toUpdate.map((f) => f.config.name).join(', ')}`
+          )
+        }
 
-          if (!err?.cancelled && confirmed) {
-            for (const field of diff.toDelete) {
-              ctx.spinner.start(`Deleting field "${field.name}"...`)
-              await deleteField(field.id)
-              ctx.spinner.stop(`Deleted field "${field.name}"`)
+        if (!dryRun) {
+          // Delete fields (with confirmation)
+          if (diff.toDelete.length > 0) {
+            const [err, confirmed] = await ctx.prompts.confirm({
+              message: `Delete ${diff.toDelete.length} field(s): ${diff.toDelete.map((f) => f.name).join(', ')}?`,
+              initialValue: false,
+            })
+
+            if (!err?.cancelled && confirmed) {
+              for (const field of diff.toDelete) {
+                if (cancelled) {
+                  ctx.logger.warn('Cancelled by user')
+                  break
+                }
+                ctx.spinner.start(`Deleting field "${field.name}"...`)
+                await deleteField(field.id)
+                ctx.spinner.stop(`Deleted field "${field.name}"`)
+              }
+            } else {
+              ctx.logger.warn('Skipped field deletion')
             }
-          } else {
-            ctx.logger.warn('Skipped field deletion')
+          }
+
+          // Create fields
+          for (const field of diff.toCreate) {
+            if (cancelled) {
+              ctx.logger.warn('Cancelled by user')
+              break
+            }
+            ctx.spinner.start(`Creating field "${field.name}"...`)
+            await createField(owner, number, field)
+            ctx.spinner.stop(`Created field "${field.name}"`)
+          }
+
+          // Update field options
+          for (const { config: fieldConfig, github: ghField } of diff.toUpdate) {
+            if (cancelled) {
+              ctx.logger.warn('Cancelled by user')
+              break
+            }
+            ctx.spinner.start(`Updating options for "${fieldConfig.name}"...`)
+            await updateFieldOptions(ghField.id, fieldConfig)
+            ctx.spinner.stop(`Updated options for "${fieldConfig.name}"`)
+          }
+        } else {
+          ctx.logger.warn('Dry run: skipping field changes')
+        }
+      }
+
+      // Step 5: Detect view drift
+      ctx.logger.newlines()
+      ctx.logger.info('── Views ──')
+      const drifts = detectViewDrift(config.views, views)
+
+      if (drifts.length === 0) {
+        ctx.logger.success('Views match config (no drift detected)')
+      } else {
+        ctx.logger.warn(`View drift detected (${drifts.length} issue(s)):`)
+        for (const drift of drifts) {
+          switch (drift.type) {
+            case 'missing_from_github':
+              ctx.logger.warn(`  "${drift.view}": missing from GitHub`)
+              break
+            case 'not_in_config':
+              ctx.logger.warn(`  "${drift.view}": exists on GitHub but not in config`)
+              break
+            case 'mismatch':
+              ctx.logger.warn(`  "${drift.view}": ${drift.details}`)
+              break
           }
         }
-
-        // Create fields
-        for (const field of diff.toCreate) {
-          ctx.spinner.start(`Creating field "${field.name}"...`)
-          await createField(owner, number, field)
-          ctx.spinner.stop(`Created field "${field.name}"`)
-        }
-
-        // Update field options
-        for (const { config: fieldConfig, github: ghField } of diff.toUpdate) {
-          ctx.spinner.start(`Updating options for "${fieldConfig.name}"...`)
-          await updateFieldOptions(ghField.id, fieldConfig)
-          ctx.spinner.stop(`Updated options for "${fieldConfig.name}"`)
-        }
-      } else {
-        ctx.logger.warn('Dry run: skipping field changes')
+        ctx.logger.warn('Views are read-only in the GitHub Projects v2 API — manual fix required')
       }
+
+      ctx.logger.newlines()
+      ctx.logger.success('Project sync complete')
+    } finally {
+      cleanup()
     }
-
-    // Step 5: Detect view drift
-    ctx.logger.newlines()
-    ctx.logger.info('── Views ──')
-    const drifts = detectViewDrift(config.views, views)
-
-    if (drifts.length === 0) {
-      ctx.logger.success('Views match config (no drift detected)')
-    } else {
-      ctx.logger.warn(`View drift detected (${drifts.length} issue(s)):`)
-      for (const drift of drifts) {
-        switch (drift.type) {
-          case 'missing_from_github':
-            ctx.logger.warn(`  "${drift.view}": missing from GitHub`)
-            break
-          case 'not_in_config':
-            ctx.logger.warn(`  "${drift.view}": exists on GitHub but not in config`)
-            break
-          case 'mismatch':
-            ctx.logger.warn(`  "${drift.view}": ${drift.details}`)
-            break
-        }
-      }
-      ctx.logger.warn('Views are read-only in the GitHub Projects v2 API — manual fix required')
-    }
-
-    ctx.logger.newlines()
-    ctx.logger.success('Project sync complete')
   },
 })

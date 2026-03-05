@@ -5,77 +5,59 @@
     "number": 9,
     "title": "roadmap",
     "description": "The public hub for Joggr — documentation, roadmap, and community.",
-    "visibility": "PRIVATE",
-    "readme": ""
+    "visibility": "PUBLIC",
+    "readme": "hello world"
   },
   "fields": [
     {
       "name": "Status",
-      "type": "SINGLE_SELECT",
+      "type": "SingleSelect",
       "options": [
         {
-          "name": "Idea",
-          "description": "Raw idea or suggestion",
-          "color": "PURPLE"
+          "name": "Idea"
         },
         {
-          "name": "Planned",
-          "description": "Planned feature",
-          "color": "YELLOW"
+          "name": "Upcoming"
         },
         {
-          "name": "In_Progress",
-          "description": "Approved and actively being worked on",
-          "color": "BLUE"
+          "name": "Planned"
         },
         {
-          "name": "Released",
-          "description": "Released feature",
-          "color": "GREEN"
+          "name": "In_Progress"
+        },
+        {
+          "name": "Released"
         }
       ]
     },
     {
       "name": "Start date",
-      "type": "DATE"
+      "type": ""
     },
     {
       "name": "Target date",
-      "type": "DATE"
+      "type": ""
     }
   ],
   "views": [
     {
-      "name": "Board",
-      "layout": "BOARD",
-      "groupBy": "Status",
+      "name": "Joggr Roadmap",
+      "layout": "BOARD_LAYOUT",
+      "groupBy": null,
       "sortBy": null,
       "fields": [
         "Title",
-        "Status",
         "Assignees",
-        "Labels"
+        "Linked pull requests",
+        "Sub-issues progress",
+        "Start date",
+        "Target date"
       ]
-    },
-    {
-      "name": "Backlog",
-      "layout": "TABLE",
-      "groupBy": null,
-      "sortBy": {
-        "field": "Status",
-        "direction": "ASC"
-      },
-      "fields": [
-        "Title",
-        "Status",
-        "Assignees",
-        "Labels"
-      ],
-      "filter": "status:Todo,In_Progress"
     }
   ],
   "statusMapping": {
     "Idea": "Idea",
+    "Upcoming": "Upcoming",
     "Planned": "Planned",
     "In progress": "In_Progress",
     "Released": "Released"
