@@ -33,7 +33,7 @@ What we're actively working on right now:
 | [Coding Agent Setup Remediation](https://github.com/orgs/joggrdocs/projects/9/views/3?pane=issue&itemId=PVTI_lADOAyJs4c4BQ0Kszgms53o&issue=joggrdocs%7Chome%7C9) | ![In Progress](https://img.shields.io/badge/In%20Progress-e85d04?style=flat-square) | [![@zrosenbauer](https://img.shields.io/badge/%40zrosenbauer-black?style=flat-square&logo=github)](https://github.com/zrosenbauer) |
 <!-- target:roadmap-table:end -->
 
-**[View full roadmap →](./docs/roadmap/overview.md)**
+**[View full roadmap →](./docs/roadmap/README.md)**
 
 ## Community
 
