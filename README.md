@@ -39,12 +39,12 @@ What we're actively working on right now:
 - [Discussions](https://github.com/joggrdocs/home/discussions) -- ask questions, share ideas, and connect with other developers.
 - [Issues](https://github.com/joggrdocs/home/issues) -- report bugs or request features.
 - [Roadmap](https://github.com/orgs/joggrdocs/projects/9) -- see what we are working on.
-- [Contributing](./CONTRIBUTING.md) -- learn how to contribute.
+- [Contributing](./.github/CONTRIBUTING.md) -- learn how to contribute.
 - [Status](https://status.joggr.io) -- check system status and uptime.
 
 ## Security
 
-If you discover a security vulnerability, please review our [Security Policy](./SECURITY.md) for responsible disclosure guidelines.
+If you discover a security vulnerability, please review our [Security Policy](./.github/SECURITY.md) for responsible disclosure guidelines.
 
 ## License
 

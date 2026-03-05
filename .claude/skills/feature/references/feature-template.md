@@ -31,12 +31,12 @@ Every feature file starts with YAML frontmatter containing:
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `status` | Yes | Current status — must match a value from `project.json` |
+| `status` | Yes | Current status — must match a value from `scripts/conf/project.json` |
 | `issue` | No | GitHub issue number (leave empty if none) |
 
 ## Status Badges
 
-Status values and badge colors are defined in `project.json` under the `Status` field. Use these exact badge URLs based on feature status:
+Status values and badge colors are defined in `scripts/conf/project.json` under the `Status` field. Use these exact badge URLs based on feature status:
 
 ### Idea (purple)
 

@@ -341,7 +341,7 @@ export default lauf({
           },
         });
         const [backupError, backupPath] = await backup.local.file({
-          sourcePath: join(ctx.root, "project.json"),
+          sourcePath: join(ctx.root, "scripts/conf/project.json"),
           backupName: "project",
         });
         if (backupError) {
@@ -351,9 +351,9 @@ export default lauf({
         }
         ctx.spinner.stop(`Backup created at ${backupPath}`);
 
-        ctx.spinner.start("Writing project.json...");
+        ctx.spinner.start("Writing scripts/conf/project.json...");
         await writeProjectConfig(ctx.root, updatedConfig);
-        ctx.spinner.stop("Updated project.json");
+        ctx.spinner.stop("Updated scripts/conf/project.json");
         ctx.logger.success("Project config synced from GitHub");
 
         return 0;
@@ -569,12 +569,12 @@ export default lauf({
 // ---------------------------------------------------------------------------
 
 /**
- * Reads project configuration from project.json.
+ * Reads project configuration from scripts/conf/project.json.
  *
  * @private
  */
 async function readProjectConfig(root: string): Promise<ProjectConfig> {
-  const raw = await readFile(join(root, "project.json"), "utf-8");
+  const raw = await readFile(join(root, "scripts/conf/project.json"), "utf-8");
   return JSON.parse(raw) as ProjectConfig;
 }
 
@@ -767,12 +767,12 @@ function convertGitHubViewToConfig(view: ProjectView): ConfigView {
 }
 
 /**
- * Writes project configuration to project.json.
+ * Writes project configuration to scripts/conf/project.json.
  *
  * @private
  */
 async function writeProjectConfig(root: string, config: ProjectConfig): Promise<void> {
-  const path = join(root, "project.json");
+  const path = join(root, "scripts/conf/project.json");
   const content = JSON.stringify(config, null, 2) + "\n";
   await writeFile(path, content);
 }

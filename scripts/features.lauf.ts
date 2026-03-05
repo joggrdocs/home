@@ -104,7 +104,7 @@ export default lauf({
 
       const featuresDir = join(ctx.root, FEATURES_DIR);
 
-      // Step 1: Read project config from project.json
+      // Step 1: Read project config from scripts/conf/project.json
       ctx.spinner.start("Reading project config...");
       const config = await readFeaturesConfig(ctx.root);
       const { owner, number } = config.project;
@@ -789,12 +789,12 @@ function buildIssueBody(content: string): { title: string; body: string } | null
 }
 
 /**
- * Reads project owner, number, and statusMapping from project.json.
+ * Reads project owner, number, and statusMapping from scripts/conf/project.json.
  *
  * @private
  */
 async function readFeaturesConfig(root: string): Promise<FeaturesConfig> {
-  const raw = await readFile(join(root, "project.json"), "utf-8");
+  const raw = await readFile(join(root, "scripts/conf/project.json"), "utf-8");
   const parsed = JSON.parse(raw) as Record<string, unknown>;
   const project = parsed.project as FeaturesConfig["project"];
   const statusMapping = (parsed.statusMapping ?? {}) as Record<string, string>;

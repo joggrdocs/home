@@ -261,13 +261,13 @@ export default lauf({
 // ---------------------------------------------------------------------------
 
 /**
- * Reads project configuration from project.json.
+ * Reads project configuration from scripts/conf/project.json.
  *
  * @private
  */
 async function readProjectConfig(root: string): Promise<[Error, null] | [null, ProjectConfig]> {
   try {
-    const raw = await readFile(join(root, "project.json"), "utf-8");
+    const raw = await readFile(join(root, "scripts/conf/project.json"), "utf-8");
     const parsed = JSON.parse(raw) as {
       project: { owner: string; repo: string; number: number };
       statusMapping: Record<string, string>;
@@ -285,7 +285,7 @@ async function readProjectConfig(root: string): Promise<[Error, null] | [null, P
     ];
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    return [new Error(`Failed to read project.json: ${message}`), null];
+    return [new Error(`Failed to read scripts/conf/project.json: ${message}`), null];
   }
 }
 

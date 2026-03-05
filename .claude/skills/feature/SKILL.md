@@ -11,7 +11,7 @@ Add new items to the product roadmap at `docs/roadmap/`. Each roadmap item consi
 
 ### Step 1: Load Project Configuration
 
-Read `project.json` at the repository root to get the current list of valid statuses from the `fields` array (the `Status` field with type `SINGLE_SELECT`). Use these as the only allowed status values throughout the workflow.
+Read `scripts/conf/project.json` at the repository root to get the current list of valid statuses from the `fields` array (the `Status` field with type `SINGLE_SELECT`). Use these as the only allowed status values throughout the workflow.
 
 ### Step 2: Gather Information
 
@@ -20,7 +20,7 @@ Collect the following from the user before proceeding:
 | Field | Required | Notes |
 |-------|----------|-------|
 | Title | Yes | Human-readable feature name |
-| Status | Yes | ! One of the statuses from `project.json` |
+| Status | Yes | ! One of the statuses from `scripts/conf/project.json` |
 | Summary | Yes | One-sentence description of the feature |
 | Problem | Yes | What limitation or gap this addresses |
 | Solution | Yes | How the feature solves the problem |
@@ -29,7 +29,7 @@ Collect the following from the user before proceeding:
 
 Use `AskUserQuestion` to collect any missing fields. All six content fields (Title, Summary, Problem, Solution, Impact, and Status) are required before creating the file.
 
-For the Status field, present the valid options loaded from `project.json` using `AskUserQuestion` with `!` to indicate required selection.
+For the Status field, present the valid options loaded from `scripts/conf/project.json` using `AskUserQuestion` with `!` to indicate required selection.
 
 ### Step 3: Search for Existing Issues
 
@@ -85,7 +85,7 @@ issue: <issue number or empty>
 ---
 ```
 
-The status badge colors (derived from `project.json` field colors) are:
+The status badge colors (derived from `scripts/conf/project.json` field colors) are:
 
 | Status | Color | Badge |
 |--------|-------|-------|
