@@ -1,5 +1,6 @@
 ---
 issue: 15
+status: Upcoming
 ---
 
 # Context MCP: External

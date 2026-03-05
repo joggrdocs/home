@@ -1,8 +1,8 @@
 {
-  "name": "@joggr/code",
+  "name": "@joggr/home",
   "version": "0.1.0",
   "private": true,
-  "description": "The public hub for Joggr — documentation, roadmap, and community.",
+  "description": "Building the context engineering toolkit for developing with AI agents in public — roadmap, community, support",
   "type": "module",
   "scripts": {
     "prepare": "lefthook install",

@@ -1,0 +1,11 @@
+query GetProject($owner: String!, $number: Int!) {
+  organization(login: $owner) {
+    projectV2(number: $number) {
+      id
+      title
+      shortDescription
+      public
+      readme
+    }
+  }
+}

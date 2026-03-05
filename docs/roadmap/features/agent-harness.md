@@ -1,6 +1,7 @@
 ---
 status: In progress
 issue: 2
+discussion: 2
 ---
 
 # Agent Harness

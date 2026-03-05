@@ -13,5 +13,5 @@
     "verbatimModuleSyntax": false,
     "noEmit": true
   },
-  "include": ["*.lauf.ts"]
+  "include": ["**/*.ts"]
 }

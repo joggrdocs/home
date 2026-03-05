@@ -1,5 +1,7 @@
 ---
 issue: 11
+status: Upcoming
+discussion: 6
 ---
 
 # Coding Agent Toolkit MCP (Serena)

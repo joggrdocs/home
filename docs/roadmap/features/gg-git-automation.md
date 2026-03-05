@@ -1,5 +1,6 @@
 ---
 issue: 21
+status: Upcoming
 ---
 
 # GG Git Automation

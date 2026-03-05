@@ -1,6 +1,7 @@
 ---
 status: Planned
 issue: 24
+discussion: 18
 ---
 
 # GG Workflow

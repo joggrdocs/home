@@ -1,5 +1,6 @@
 ---
 issue: 10
+status: Upcoming
 ---
 
 # Coding Agent Statusline

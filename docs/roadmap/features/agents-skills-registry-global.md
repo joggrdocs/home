@@ -1,5 +1,6 @@
 ---
 issue: 3
+status: Upcoming
 ---
 
 # Agents & Skills Registry: Global

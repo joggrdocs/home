@@ -1,6 +1,7 @@
 ---
 status: Planned
 issue: 12
+discussion: 12
 ---
 
 # Coding Standards Generation

@@ -1,5 +1,6 @@
 ---
 issue: 5
+status: Upcoming
 ---
 
 # Coding Agent Quality Checks

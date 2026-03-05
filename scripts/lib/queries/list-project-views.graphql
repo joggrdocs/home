@@ -1,0 +1,36 @@
+query ListProjectViews($owner: String!, $number: Int!) {
+  organization(login: $owner) {
+    projectV2(number: $number) {
+      views(first: 50) {
+        nodes {
+          id
+          name
+          layout
+          filter
+          groupByFields(first: 10) {
+            nodes {
+              ... on ProjectV2Field { name }
+              ... on ProjectV2SingleSelectField { name }
+              ... on ProjectV2IterationField { name }
+            }
+          }
+          sortByFields(first: 10) {
+            nodes {
+              field {
+                ... on ProjectV2Field { name }
+                ... on ProjectV2SingleSelectField { name }
+                ... on ProjectV2IterationField { name }
+              }
+              direction
+            }
+          }
+          visibleFields(first: 50) {
+            nodes {
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}

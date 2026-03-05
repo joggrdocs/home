@@ -24,13 +24,15 @@ Build the perfect AI agent setup — automatically. Joggr creates custom coding 
 
 Explore what we're building. Join the conversation on any feature.
 
-| Feature                                                                           | Status                                                                                               | Discussion                                                                                                                                            |
-| --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+<!-- target:roadmap-table:start -->
+| Feature | Status | Discussion |
+| ------- | ------ | ---------- |
+| [Agent Harness](https://github.com/joggrdocs/home/discussions/2) | ![In Progress](https://img.shields.io/badge/In%20Progress-F59E0B?style=flat-square) | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/2) |
 | [Coding Agent Setup Doctor](https://github.com/joggrdocs/home/discussions/1) | ![Released](https://img.shields.io/badge/Released-047857?style=flat-square) | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/1) |
-| [Agent Harness](https://github.com/joggrdocs/home/discussions/2)                        | ![Planned](https://img.shields.io/badge/Planned-1D4ED8?style=flat-square)   | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/2) |
-| [Coding Standards Generation](https://github.com/joggrdocs/home/discussions/12) | ![Planned](https://img.shields.io/badge/Planned-1D4ED8?style=flat-square)   | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/12) |
-| [GG Workflow](https://github.com/joggrdocs/home/discussions/18)                            | ![Planned](https://img.shields.io/badge/Planned-1D4ED8?style=flat-square)   | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/18) |
-| [Coding Agent Toolkit MCP](https://github.com/joggrdocs/home/discussions/6)  | ![Approved](https://img.shields.io/badge/Approved-B45309?style=flat-square) | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/6) |
+| [Coding Agent Toolkit MCP (Serena)](https://github.com/joggrdocs/home/discussions/6) | ![Upcoming](https://img.shields.io/badge/Upcoming-3B82F6?style=flat-square) | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/6) |
+| [Coding Standards Generation](https://github.com/joggrdocs/home/discussions/12) | ![Planned](https://img.shields.io/badge/Planned-1D4ED8?style=flat-square) | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/12) |
+| [GG Workflow](https://github.com/joggrdocs/home/discussions/18) | ![Planned](https://img.shields.io/badge/Planned-1D4ED8?style=flat-square) | [![Discuss](https://img.shields.io/badge/Discuss-6D28D9?style=flat-square)](https://github.com/joggrdocs/home/discussions/18) |
+<!-- target:roadmap-table:end -->
 
 **[View full roadmap →](./docs/roadmap/overview.md)**
 

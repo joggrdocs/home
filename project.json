@@ -31,6 +31,57 @@
       ]
     },
     {
+      "name": "Product Area",
+      "type": "MultiSelect",
+      "options": [
+        {
+          "name": "🔧 agent-setup",
+          "description": "Setting up and maintaining dev environments for AI coding agents",
+          "color": "BLUE"
+        },
+        {
+          "name": "📦 agent-sandbox",
+          "description": "Isolated execution environments for AI agents",
+          "color": "CYAN"
+        },
+        {
+          "name": "📋 coding-standards",
+          "description": "Teaching agents project-specific code quality rules",
+          "color": "PURPLE"
+        },
+        {
+          "name": "🎮 gg-workflow",
+          "description": "Structured workflow for AI-assisted development",
+          "color": "GREEN"
+        },
+        {
+          "name": "🛠️ developer-tools",
+          "description": "Tools for developers working with AI agents",
+          "color": "ORANGE"
+        },
+        {
+          "name": "🔌 context-integration",
+          "description": "Connecting agents to external data and systems",
+          "color": "PINK"
+        },
+        {
+          "name": "📚 documentation",
+          "description": "Agent-powered documentation creation and analysis",
+          "color": "GRAY"
+        },
+        {
+          "name": "⚡ skills-agents",
+          "description": "Reusable AI agent capabilities and registries",
+          "color": "YELLOW"
+        },
+        {
+          "name": "🏗️ platform",
+          "description": "Core AI agent infrastructure and orchestration",
+          "color": "RED"
+        }
+      ]
+    },
+    {
       "name": "Start date",
       "type": ""
     },
@@ -48,6 +99,7 @@
       "fields": [
         "Title",
         "Assignees",
+        "Product Area",
         "Linked pull requests",
         "Sub-issues progress",
         "Start date",
