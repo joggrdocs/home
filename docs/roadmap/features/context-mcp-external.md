@@ -4,17 +4,16 @@ status: Upcoming
 productArea:
   - 🔌 context-integration
 ---
-
-# Context MCP: External
+# Instant Access to External Docs for Agents
 
 ## Problem
 
-Agents lack a unified way to discover and retrieve relevant external documentation, forcing fragmented lookups across multiple sources and formats that waste tokens and miss critical context.
+Agents often need to reference external documentation (framework docs, APIs, product guides), but there’s no consistent way for them to discover and retrieve it. Instead, they rely on ad-hoc web lookups or manual retrieval logic, which wastes tokens, slows workflows, and often misses relevant context.
 
 ## What we're releasing
 
-Context MCP: External provides a single aggregation endpoint that indexes public markdown files, `llms.txt`, and XML sitemaps, extracts only the relevant content, and stores it locally so agents can access it through standard filesystem operations.
+Context MCP: External aggregates external documentation sources—such as public markdown repositories, llms.txt, and documentation sites exposed through XML sitemaps—and indexes them locally. Agents can then retrieve the relevant content directly from this local index using standard filesystem operations, without needing custom retrieval logic or repeated web requests.
 
 ## Expected outcome
 
-Agents produce higher-quality outputs grounded in up-to-date external documentation, while reducing token overhead and eliminating the need for ad-hoc retrieval logic in every workflow.
+Agents can quickly access the right external documentation while using fewer tokens, producing more accurate outputs and eliminating the need to build custom documentation retrieval into every workflow.

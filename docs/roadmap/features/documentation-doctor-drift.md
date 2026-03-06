@@ -4,17 +4,16 @@ status: Upcoming
 productArea:
   - 📚 documentation
 ---
-
-# Documentation Doctor: Drift
+# Detect Outdated Documentation
 
 ## Problem
 
-As codebases evolve, documentation silently falls out of sync with the actual implementation, leading developers to follow stale instructions that waste time or introduce bugs.
+As codebases evolve, documentation often falls out of sync with the actual implementation. AI coding agents that rely on this documentation can follow outdated instructions, generating incorrect code or workflows based on stale guidance.
 
 ## What we're releasing
 
-Documentation Doctor: Drift compares existing documentation against the current state of the codebase to detect inconsistencies and outdated content, flagging exactly where drift has occurred.
+A documentation consistency check that compares repository documentation against the current state of the codebase to detect outdated instructions, mismatched examples, and other inconsistencies. The system flags exactly where documentation no longer reflects the implementation so it can be corrected.
 
 ## Expected outcome
 
-Developers can trust that documentation reflects reality, reducing misunderstandings and preventing costly mistakes caused by following outdated guidance.
+Teams prevent AI agents from following stale documentation, ensuring agent-generated code and workflows stay aligned with the current implementation.

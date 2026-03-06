@@ -2,10 +2,9 @@
 status: Planned
 issue: 12
 productArea:
-  - 📏 coding-standards
+  - 📋 coding-standards
 ---
-
-# Coding Standards Generation
+# Generate Coding Standards Docs
 
 ## Problem
 

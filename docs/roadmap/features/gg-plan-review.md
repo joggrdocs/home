@@ -4,17 +4,16 @@ issue: 23
 productArea:
   - 🎮 gg-workflow
 ---
-
-# GG Plan Review
+# GG: AI Implementation Plan Review
 
 ## Problem
 
-AI-generated plans are difficult to review, annotate, and approve collaboratively, often requiring manual copy-pasting or screen sharing that slows teams down.
+AI coding tools often generate implementation plans during planning phases, but these plans are difficult to review collaboratively. Some tools allow plans to be saved as markdown, but markdown files—especially in tools like GitHub—aren’t designed for structured discussion, annotation, or collaborative review of complex plans.
 
 ## What we're releasing
 
-GG Plan Review provides a dedicated web UI where team members can view, annotate, and approve workflow plans with secure sharing, keeping the entire review process in one place.
+GG Plan Review provides a collaborative web UI where teams can view, comment on, and approve AI-generated implementation plans in a WYSIWYG, document-style interface. Plans can be securely shared and reviewed in one place before the AI coding tool executes them.
 
 ## Expected outcome
 
-Teams can collaborate on AI-generated plans faster and with greater confidence, reducing miscommunication and ensuring alignment before code execution begins.
+Developers and teams can review, refine, and align on implementation plans before code execution begins, making it easier to catch issues early and ensure the approach is correct before the AI starts writing code.

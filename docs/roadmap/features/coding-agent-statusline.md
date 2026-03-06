@@ -4,8 +4,7 @@ status: Upcoming
 productArea:
   - 🛠️ developer-tools
 ---
-
-# Coding Agent Statusline
+# Terminal Status for Coding Agents
 
 ## Problem
 
@@ -13,7 +12,7 @@ Developers using terminal-based coding agents lack at-a-glance visibility into t
 
 ## What we're releasing
 
-Coding Agent Statusline adds a persistent terminal status bar that surfaces repository state, GG workflow status, and AI session context in real time, purpose-built for coding agent environments.
+Terminal Status for Coding Agents adds a persistent terminal status bar that surfaces repository state, GG workflow status, and AI session context in real time, purpose-built for coding agent environments.
 
 ## Expected outcome
 

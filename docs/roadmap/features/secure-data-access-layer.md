@@ -4,17 +4,16 @@ status: Upcoming
 productArea:
   - 🔌 context-integration
 ---
-
-# Secure Data Access Layer (unmcp)
+# Secure MCP Access Controls (unmcp)
 
 ## Problem
 
-Agents with direct MCP integrations have broad, unscoped access to external systems, creating a risk of unauthorized reads and writes to sensitive resources.
+When agents connect directly to systems like GitHub, Jira, or Linear through MCP integrations, they inherit the full permissions of the connected account. This can unintentionally give agents the ability to modify or delete sensitive resources.
 
 ## What we're releasing
 
-The Secure Data Access Layer introduces a permission-bound abstraction that replaces direct integrations, scoping every agent request to only the resources it is explicitly authorized to access.
+We’re integrating unMCP, a CLI tool that introduces a controlled layer between agents and MCP-connected systems. Instead of giving agents unrestricted access through MCP, unMCP enforces scoped permissions so agents can only access approved resources and perform explicitly allowed actions.
 
 ## Expected outcome
 
-Organizations gain confidence that AI agents operate within strict access boundaries, reducing security risk and enabling safer adoption of agentic workflows across sensitive systems.
+Teams can safely connect agents to tools like GitHub and Jira/Linear without exposing the full privileges of those systems, enabling secure automation while reducing the risk of unintended or destructive operations.

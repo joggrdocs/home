@@ -4,8 +4,7 @@ status: Upcoming
 productArea:
   - 🛠️ developer-tools
 ---
-
-# Coding Agent Quality Checks
+# Automatically Validate Agent-Generated Code
 
 ## Problem
 

@@ -4,17 +4,16 @@ issue: 33
 productArea:
   - 📚 documentation
 ---
-
-# Vibepress Setup
+# Generate a Docs Website from Your Repository
 
 ## Problem
 
-Turning scattered repository markdown files into a polished, navigable documentation site typically requires manual configuration of static site generators, themes, and navigation structures.
+Repositories often contain useful markdown documentation, but turning those files into a structured documentation website requires configuring static site generators, themes, and navigation manually.
 
 ## What we're releasing
 
-Vibepress Setup automatically generates a ready-to-use documentation website from existing repository markdown, respecting the current documentation architecture without requiring manual setup or configuration.
+A one-command setup that converts repository markdown into a ready-to-use Vibepress documentation website. The system automatically detects the documentation structure and generates navigation and site configuration without manual setup.
 
 ## Expected outcome
 
-Teams get a professional documentation site up and running in minutes instead of hours, lowering the barrier to publishing and maintaining discoverable, user-friendly docs.
+Teams can instantly turn existing repository documentation into a clean, navigable docs website without configuring documentation tooling.

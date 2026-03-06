@@ -4,17 +4,16 @@ status: Upcoming
 productArea:
   - 📚 documentation
 ---
-
-# Documentation Doctor: Missing
+# Detect Missing Documentation
 
 ## Problem
 
-Repositories often lack essential documentation like READMEs, setup guides, and API references, leaving developers to reverse-engineer onboarding steps and usage patterns on their own.
+Repositories often lack essential documentation such as READMEs, setup instructions, and API references. When these are missing or incomplete, developers must reverse-engineer how a project works, slowing onboarding and increasing friction for contributors.
 
 ## What we're releasing
 
-Documentation Doctor: Missing automatically scans repositories to identify absent or incomplete core documentation and surfaces actionable findings so teams know exactly what needs to be written.
+An agent that automatically analyzes a codebase to detect missing or incomplete core documentation—such as READMEs, setup guides, and API references—and surfaces clear, actionable recommendations on what should be added or improved.
 
 ## Expected outcome
 
-Teams close documentation gaps faster, reducing onboarding friction and making repositories more accessible to new and existing contributors alike.
+Teams can quickly identify and close documentation gaps, making repositories easier to understand, faster to onboard into, and more accessible for both new and existing contributors.

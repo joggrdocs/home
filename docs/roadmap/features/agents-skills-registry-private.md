@@ -4,17 +4,16 @@ issue: 4
 productArea:
   - ⚡ skills-agents
 ---
-
-# Agents & Skills Registry: Private
+# Centralize and Govern Agent Skills
 
 ## Problem
 
-Enterprises lack a centralized, private way to manage custom agent skills, leading to skill sprawl, security blind spots, and no visibility into which skills are used where across the organization.
+Enterprises often create custom agent skills across multiple teams and repositories with no centralized system to manage them. This leads to duplicated skills, inconsistent implementations, and limited visibility into what capabilities agents are using across the organization.
 
 ## What we're releasing
 
-The Private Registry gives enterprises a hosted, searchable catalog of custom skills that enforces security policies, reduces maintenance overhead, and provides full visibility into skill distribution and usage.
+A private registry that hosts and organizes an organization’s custom agent skills in a centralized catalog. Teams can discover approved skills, enforce governance policies, and track how skills are distributed and used across repositories and workflows.
 
 ## Expected outcome
 
-Enterprise teams gain centralized governance over their AI coding toolchain, reducing security risk while enabling consistent, organization-wide adoption of approved agent skills.
+Organizations gain visibility and control over their AI coding capabilities, enabling teams to reuse trusted skills while maintaining consistent governance and security standards.

@@ -4,17 +4,16 @@ issue: 32
 productArea:
   - 📚 documentation
 ---
-
-# Vibepress Publish
+# Centralize Internal Docs for Developers and AI Agents
 
 ## Problem
 
-Internal documentation is often scattered across wikis, repos, and tools with no unified way for both humans and AI agents to discover and consume it in a standard format.
+Even when teams have good documentation, it’s often scattered across repositories and internal tools, making it hard for developers and AI agents to discover and reliably access it.
 
 ## What we're releasing
 
-Vibepress Publish delivers an authenticated documentation platform that serves content via `llms.txt` and `.md` protocols, making internal docs consistently accessible to both engineers and coding agents.
+A secure documentation publishing platform that hosts Vibepress documentation sites and serves them in standardized formats such as markdown and llms.txt, making internal docs consistently accessible to both developers and AI agents.
 
 ## Expected outcome
 
-Teams get a single source of truth for internal documentation that accelerates onboarding, reduces context-switching, and enables AI agents to leverage organizational knowledge directly.
+Teams get a centralized internal documentation platform that developers and AI agents can easily discover, search, and consume.

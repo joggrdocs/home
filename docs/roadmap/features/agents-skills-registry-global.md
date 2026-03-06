@@ -4,17 +4,16 @@ status: Upcoming
 productArea:
   - ⚡ skills-agents
 ---
-
-# Agents & Skills Registry: Global
+# Prebuilt Agents & Skills for AI Development
 
 ## Problem
 
-Developers configuring AI coding agents must manually discover, vet, and wire up individual agent capabilities, leading to inconsistent setups and duplicated effort across repositories.
+Developers configuring AI coding agents must manually discover, evaluate, and integrate individual agent capabilities. This leads to inconsistent setups and duplicated effort across repositories.
 
-## What we're releasing
+## Solution
 
-The Global Registry provides a curated catalog of prebuilt, Joggr-verified agents and reusable skills that can be installed directly through the AI Dev Setup CLI and automatically scoped to a repository's needs.
+The Global Registry provides a curated catalog of prebuilt, Joggr-verified agents and reusable skills that can be installed directly through the AI Dev Setup CLI. Each agent and skill is automatically configured for the target repository, eliminating the need for manual setup and integration.
 
-## Expected outcome
+## Expected Outcome
 
 Teams can bootstrap reliable AI coding workflows in minutes instead of hours, with confidence that every agent and skill has been verified for quality and compatibility.

@@ -1,6 +1,28 @@
 query ListProjectItems($owner: String!, $number: Int!) {
   organization(login: $owner) {
     projectV2(number: $number) {
+      fields(first: 50) {
+        nodes {
+          ... on ProjectV2SingleSelectField {
+            id
+            name
+            options {
+              id
+              name
+            }
+          }
+          ... on ProjectV2IterationField {
+            id
+            name
+            configuration {
+              iterations {
+                id
+                title
+              }
+            }
+          }
+        }
+      }
       items(first: 100) {
         nodes {
           id
@@ -15,10 +37,22 @@ query ListProjectItems($owner: String!, $number: Int!) {
               ... on ProjectV2ItemFieldSingleSelectValue {
                 field {
                   ... on ProjectV2SingleSelectField {
+                    id
                     name
                   }
                 }
+                optionId
                 name
+              }
+              ... on ProjectV2ItemFieldIterationValue {
+                field {
+                  ... on ProjectV2IterationField {
+                    id
+                    name
+                  }
+                }
+                iterationId
+                title
               }
             }
           }

@@ -4,17 +4,18 @@ status: Upcoming
 productArea:
   - 🔌 context-integration
 ---
-
 # Coding Agent Toolkit MCP (Serena)
 
 ## Problem
 
-Coding agents today navigate codebases by reading entire files and using text-based search, which wastes tokens, slows down operations, and often leads to imprecise edits in large repositories.
+Coding agents typically navigate repositories by reading entire files or relying on text search. This wastes tokens, slows down operations, and often leads to imprecise edits in large codebases.
 
 ## What we're releasing
 
-The Coding Agent Toolkit MCP exposes a symbol-level code navigation and editing interface via an MCP server, allowing agents to jump directly to definitions, references, and symbols without processing entire files.
+Our Coding Agent Toolkit introduces semantic code navigation and editing, allowing agents to work directly with functions, classes, and symbols instead of scanning full files.
+
+Under the hood, this capability is powered by advanced code analysis that lets agents locate definitions, trace references, and apply edits at the symbol level—similar to how modern development tools understand and navigate code.
 
 ## Expected outcome
 
-Agents operate faster and more accurately with significantly lower token usage, making AI-assisted development practical and cost-effective even in large, complex codebases.
+Agents can locate the right code faster, make more precise changes, and use far fewer tokens, making AI-assisted development reliable even in large and complex repositories.

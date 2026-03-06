@@ -5,8 +5,7 @@ productArea:
   - 📦 agent-sandbox
   - 🎮 gg-workflow
 ---
-
-# GG Workspaces: Containers
+# GG: Run Coding Agents in Secure Containers
 
 ## Problem
 
@@ -14,7 +13,7 @@ Running AI agents directly on a developer's local machine poses security and sta
 
 ## What we're releasing
 
-GG Workspaces: Containers wraps each AI agent session in an isolated local container, sandboxing file system access and process execution so that agent activity cannot affect the host system.
+GG Workspaces: Containers runs each AI agent session inside an isolated local container, sandboxing filesystem access and process execution so agent activity cannot affect the host system.
 
 ## Expected outcome
 

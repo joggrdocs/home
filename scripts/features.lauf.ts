@@ -1,6 +1,7 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { diffLines } from "diff";
 import { lauf, z } from "laufen";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 
@@ -39,6 +40,15 @@ interface FeatureFile {
   frontmatter: Frontmatter;
 }
 
+interface FeatureChanges {
+  bodyChanged: boolean;
+  statusChanged: boolean;
+  productAreaChanged: boolean;
+  oldBody?: string;
+  oldStatus?: string;
+  oldProductArea?: readonly string[];
+}
+
 interface StatusField {
   id: string;
   options: Map<string, string>;
@@ -46,6 +56,7 @@ interface StatusField {
 
 interface ProductAreaField {
   id: string;
+  type: string;
   options: Map<string, string>;
 }
 
@@ -264,20 +275,47 @@ export default lauf({
         // Step 2: Display changes in diff format
         const red = "\x1b[31m";
         const green = "\x1b[32m";
-        const strike = "\x1b[9m";
+        const dim = "\x1b[2m";
         const reset = "\x1b[0m";
 
         ctx.logger.newlines();
         ctx.logger.info(`┌─ Changes to be applied (${changes.length} file(s))`);
         for (const change of changes) {
-          ctx.logger.message(`│ ${change.filename} [#${change.issueNumber}]`);
-          if (change.statusChanged) {
-            ctx.logger.message(
-              `│ ${red}${strike}- status: ${change.fromStatus}${reset}\n│ ${green}+ status: ${change.toStatus}${reset}`,
-            );
-          }
+          ctx.logger.message(`│ ${dim}#${change.issueNumber} --> ${change.filename}${reset}`);
+
           if (change.contentChanged) {
-            ctx.logger.message(`│ ${green}+ content: updated from GitHub${reset}`);
+            const diff = diffLines(change.fromContent, change.toContent, {
+              ignoreWhitespace: true,
+            });
+            const MAX_DIFF_LINES = 10;
+            let linesShown = 0;
+
+            for (const part of diff) {
+              if (linesShown >= MAX_DIFF_LINES) {
+                ctx.logger.message(`│   ${dim}... (diff truncated)${reset}`);
+                break;
+              }
+
+              const lines = part.value.split("\n").filter((line) => line.length > 0);
+              if (part.added) {
+                for (const line of lines) {
+                  if (linesShown >= MAX_DIFF_LINES) break;
+                  ctx.logger.message(`│   ${green}+ ${line}${reset}`);
+                  linesShown++;
+                }
+              } else if (part.removed) {
+                for (const line of lines) {
+                  if (linesShown >= MAX_DIFF_LINES) break;
+                  ctx.logger.message(`│   ${red}- ${line}${reset}`);
+                  linesShown++;
+                }
+              }
+            }
+          }
+
+          if (change.statusChanged) {
+            ctx.logger.message(`│   ${red}- status: ${change.fromStatus}${reset}`);
+            ctx.logger.message(`│   ${green}+ status: ${change.toStatus}${reset}`);
           }
         }
         ctx.logger.info("└─");
@@ -375,8 +413,31 @@ export default lauf({
 
       ctx.logger.info(`Found ${mdFiles.length} feature file(s)`);
 
+      // Fetch project items to get current status and product area
+      ctx.spinner.start("Fetching project items...");
+      const [itemsError, projectItemsData] = await github.projects.items.list({
+        owner,
+        number,
+      });
+      if (itemsError) {
+        ctx.logger.error(`Failed to fetch project items: ${itemsError.message}`);
+        return 1;
+      }
+      const projectItems = new Map<number, { status?: string; productArea?: readonly string[] }>();
+      for (const item of projectItemsData) {
+        if (item.content.number) {
+          projectItems.set(item.content.number, {
+            status: item.status,
+            productArea: item.productArea,
+          });
+        }
+      }
+      ctx.spinner.stop(`Fetched ${projectItems.size} project item(s)`);
+
       const featuresToCreate: FeatureFile[] = [];
-      const featuresToUpdate: Array<FeatureFile & { issueNumber: number }> = [];
+      const featuresToUpdate: Array<
+        FeatureFile & { issueNumber: number; changes: FeatureChanges }
+      > = [];
 
       ctx.spinner.start("Checking for differences...");
       let checked = 0;
@@ -422,8 +483,35 @@ export default lauf({
             }
             continue;
           }
-          if (built.body !== issueData.body) {
-            featuresToUpdate.push({ ...feature, issueNumber: parsed.frontmatter.issue });
+
+          const projectItem = projectItems.get(parsed.frontmatter.issue);
+          const localStatus = parsed.frontmatter.status
+            ? config.statusMapping[parsed.frontmatter.status]
+            : undefined;
+          const githubStatus = projectItem?.status;
+
+          const localProductArea = parsed.frontmatter.productArea ?? [];
+          const githubProductArea = projectItem?.productArea ?? [];
+
+          const bodyChanged = built.body !== issueData.body;
+          const statusChanged = localStatus !== githubStatus;
+          const productAreaChanged =
+            localProductArea.length !== githubProductArea.length ||
+            !localProductArea.every((area) => githubProductArea.includes(area));
+
+          if (bodyChanged || statusChanged || productAreaChanged) {
+            featuresToUpdate.push({
+              ...feature,
+              issueNumber: parsed.frontmatter.issue,
+              changes: {
+                bodyChanged,
+                statusChanged,
+                productAreaChanged,
+                oldBody: bodyChanged ? issueData.body : undefined,
+                oldStatus: statusChanged ? githubStatus : undefined,
+                oldProductArea: productAreaChanged ? githubProductArea : undefined,
+              },
+            });
           } else if (ctx.args.verbose) {
             ctx.logger.info(`${filename}: issue #${parsed.frontmatter.issue} already in sync`);
           }
@@ -444,7 +532,9 @@ export default lauf({
       );
 
       // Display changes in diff format
+      const red = "\x1b[31m";
       const green = "\x1b[32m";
+      const dim = "\x1b[2m";
       const reset = "\x1b[0m";
 
       ctx.logger.newlines();
@@ -454,13 +544,70 @@ export default lauf({
 
       for (const feature of featuresToCreate) {
         const statusLabel = feature.frontmatter.status ? ` [${feature.frontmatter.status}]` : "";
-        ctx.logger.message(`│ ${green}+ Create issue: ${feature.title}${statusLabel}${reset}`);
+        const productAreaLabel =
+          feature.frontmatter.productArea && feature.frontmatter.productArea.length > 0
+            ? ` (${feature.frontmatter.productArea.join(", ")})`
+            : "";
+        ctx.logger.message(
+          `│ ${green}+ Create issue: ${feature.title}${statusLabel}${productAreaLabel}${reset}`,
+        );
       }
 
       for (const feature of featuresToUpdate) {
-        ctx.logger.message(
-          `│ ${feature.filename} [#${feature.issueNumber}]\n│ ${green}+ content: update issue body${reset}`,
-        );
+        ctx.logger.message(`│ ${dim}${feature.filename} --> #${feature.issueNumber}${reset}`);
+
+        if (feature.changes.bodyChanged && feature.changes.oldBody) {
+          const diff = diffLines(feature.changes.oldBody, feature.body, {
+            ignoreWhitespace: true,
+          });
+          const MAX_DIFF_LINES = 10;
+          let linesShown = 0;
+
+          for (const part of diff) {
+            if (linesShown >= MAX_DIFF_LINES) {
+              ctx.logger.message(`│   ${dim}... (diff truncated)${reset}`);
+              break;
+            }
+
+            const lines = part.value.split("\n").filter((line) => line.length > 0);
+            if (part.added) {
+              for (const line of lines) {
+                if (linesShown >= MAX_DIFF_LINES) break;
+                ctx.logger.message(`│   ${green}+ ${line}${reset}`);
+                linesShown++;
+              }
+            } else if (part.removed) {
+              for (const line of lines) {
+                if (linesShown >= MAX_DIFF_LINES) break;
+                ctx.logger.message(`│   ${red}- ${line}${reset}`);
+                linesShown++;
+              }
+            }
+          }
+        }
+
+        if (feature.changes.statusChanged) {
+          const localStatus = feature.frontmatter.status
+            ? config.statusMapping[feature.frontmatter.status]
+            : "(none)";
+          const oldStatus = feature.changes.oldStatus ?? "(none)";
+          ctx.logger.message(`│   ${red}- status: ${oldStatus}${reset}`);
+          ctx.logger.message(`│   ${green}+ status: ${localStatus}${reset}`);
+        }
+
+        if (feature.changes.productAreaChanged) {
+          const oldAreas = feature.changes.oldProductArea ?? [];
+          const newAreas = feature.frontmatter.productArea ?? [];
+          const removedAreas = oldAreas.filter((area) => !newAreas.includes(area));
+          const addedAreas = newAreas.filter((area) => !oldAreas.includes(area));
+
+          if (removedAreas.length > 0) {
+            ctx.logger.message(`│   ${red}- productArea: ${removedAreas.join(", ")}${reset}`);
+          }
+          if (addedAreas.length > 0) {
+            ctx.logger.message(`│   ${green}+ productArea: ${addedAreas.join(", ")}${reset}`);
+          }
+        }
       }
 
       ctx.logger.info("└─");
@@ -535,6 +682,7 @@ export default lauf({
       const productAreaField: ProductAreaField | undefined = productAreaFieldData?.options
         ? {
             id: productAreaFieldData.id,
+            type: productAreaFieldData.type,
             options: new Map(productAreaFieldData.options.map((o) => [o.name, o.id])),
           }
         : undefined;
@@ -567,6 +715,14 @@ export default lauf({
       // Step 5: Apply changes
       let processed = 0;
 
+      // Build project items map with IDs
+      const projectItemsWithIds = new Map<number, string>();
+      for (const item of projectItemsData) {
+        if (item.content.number) {
+          projectItemsWithIds.set(item.content.number, item.id);
+        }
+      }
+
       // Process updates first
       for (const feature of featuresToUpdate) {
         if (cancelled) {
@@ -576,21 +732,148 @@ export default lauf({
 
         ctx.spinner.start(`Updating issue #${feature.issueNumber}...`);
 
-        // eslint-disable-next-line no-await-in-loop
-        const [updateError] = await github.issues.update({
-          issueNumber: feature.issueNumber,
-          body: feature.body,
-        });
+        // Update issue body if changed
+        if (feature.changes.bodyChanged) {
+          // eslint-disable-next-line no-await-in-loop
+          const [updateError] = await github.issues.update({
+            issueNumber: feature.issueNumber,
+            body: feature.body,
+          });
 
-        if (updateError) {
-          ctx.spinner.stop();
-          ctx.logger.error(
-            `Failed to update issue #${feature.issueNumber}: ${updateError.message}`,
-          );
-        } else {
-          ctx.spinner.stop(`Updated issue #${feature.issueNumber} for "${feature.title}"`);
-          processed++;
+          if (updateError) {
+            ctx.spinner.stop();
+            ctx.logger.error(
+              `Failed to update issue body #${feature.issueNumber}: ${updateError.message}`,
+            );
+            continue;
+          }
         }
+
+        const itemId = projectItemsWithIds.get(feature.issueNumber);
+        if (!itemId) {
+          ctx.spinner.stop();
+          ctx.logger.warn(`Could not find project item ID for issue #${feature.issueNumber}`);
+          continue;
+        }
+
+        // Update status field if changed
+        if (feature.changes.statusChanged && feature.frontmatter.status) {
+          const mappedStatus = config.statusMapping[feature.frontmatter.status];
+          const statusOptionId = statusField.options.get(mappedStatus);
+
+          if (statusOptionId) {
+            // Create GraphQL mutation for status update
+            const statusMutation = {
+              query: `
+                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: { singleSelectOptionId: $optionId }
+                  }) {
+                    projectV2Item { id }
+                  }
+                }
+              `,
+              variables: {
+                projectId,
+                itemId,
+                fieldId: statusField.id,
+                optionId: statusOptionId,
+              },
+            };
+
+            // eslint-disable-next-line no-await-in-loop
+            const [statusError] = await github.graphql({
+              query: statusMutation.query,
+              variables: statusMutation.variables,
+            });
+
+            if (statusError) {
+              ctx.spinner.stop();
+              ctx.logger.error(
+                `Failed to update status for #${feature.issueNumber}: ${statusError.message}`,
+              );
+              continue;
+            }
+          }
+        }
+
+        // Update product area field if changed
+        if (
+          feature.changes.productAreaChanged &&
+          productAreaField &&
+          feature.frontmatter.productArea
+        ) {
+          const productAreaOptionIds = feature.frontmatter.productArea
+            .map((area) => productAreaField.options.get(area))
+            .filter((id): id is string => id !== undefined);
+
+          if (productAreaOptionIds.length > 0) {
+            // Both single-select and iteration fields only support a single value
+            const optionId = productAreaOptionIds[0];
+
+            const query =
+              productAreaField.type === "ProjectV2SingleSelectField"
+                ? `
+                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: { singleSelectOptionId: $optionId }
+                  }) {
+                    projectV2Item { id }
+                  }
+                }
+              `
+                : `
+                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: { iterationId: $optionId }
+                  }) {
+                    projectV2Item { id }
+                  }
+                }
+              `;
+
+            // eslint-disable-next-line no-await-in-loop
+            const [productAreaError] = await github.graphql({
+              query,
+              variables: {
+                projectId,
+                itemId,
+                fieldId: productAreaField.id,
+                optionId,
+              },
+            });
+
+            if (productAreaError) {
+              ctx.spinner.stop();
+              ctx.logger.error(
+                `Failed to update product area for #${feature.issueNumber}: ${productAreaError.message}`,
+              );
+              continue;
+            }
+          }
+        }
+
+        const changesList = [
+          feature.changes.bodyChanged && "body",
+          feature.changes.statusChanged && "status",
+          feature.changes.productAreaChanged && "product area",
+        ]
+          .filter(Boolean)
+          .join(", ");
+
+        ctx.spinner.stop(
+          `Updated issue #${feature.issueNumber} for "${feature.title}" (${changesList})`,
+        );
+        processed++;
       }
 
       // Process creates

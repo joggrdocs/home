@@ -4,17 +4,16 @@ issue: 31
 productArea:
   - 📚 documentation
 ---
-
-# Vibepress Doctor
+# Automatically Maintain Your Documentation Site
 
 ## Problem
 
-After initial Vibepress setup, documentation sites accumulate stale pages, broken links, and configuration drift that degrade the reader experience over time without a dedicated maintenance workflow.
+Over time, documentation sites/wiki's accumulate broken links, outdated pages, and configuration drift. Without regular maintenance, these issues degrade the reader experience and make documentation harder to trust.
 
 ## What we're releasing
 
-Vibepress Doctor continuously audits the Vibepress configuration, automatically patching gaps, removing stale content, and handling ongoing maintenance so documentation sites stay accurate and well-organized.
+An automated documentation site maintenance tool that continuously audits the documentation site configuration and content, detecting stale pages, broken links, and structural issues. It automatically fixes common problems and surfaces recommendations to keep the site organized and accurate.
 
 ## Expected outcome
 
-Documentation sites remain reliable and up to date with minimal manual effort, ensuring readers always find current, trustworthy content.
+Documentation sites stay clean, reliable, and up to date with minimal manual maintenance, ensuring developers and AI agents can consistently rely on accurate documentation.

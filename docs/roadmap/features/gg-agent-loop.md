@@ -4,17 +4,16 @@ issue: 20
 productArea:
   - 🎮 gg-workflow
 ---
-
-# GG Agent Loop
+# Run Coding Agents Autonomously
 
 ## Problem
 
-Running AI coding agents requires constant human supervision, limiting the scope and speed of tasks that can be delegated to autonomous agents.
+AI coding agents often require frequent human intervention to continue working, which limits how long they can run and reduces the complexity of tasks that can be delegated to them.
 
 ## What we're releasing
 
-GG Agent Loop enables autonomous coding agents to run independently in a remote environment, continuously looping over operator-defined instructions without requiring constant human intervention.
+An autonomous execution loop that allows coding agents to continuously run tasks based on operator-defined instructions. Agents can iterate, evaluate results, and continue working without requiring constant human prompts.
 
 ## Expected outcome
 
-Teams can offload longer-running and more complex coding tasks to autonomous agents, dramatically increasing development throughput while maintaining human oversight through operator-set instructions.
+Teams can delegate longer-running and more complex development tasks to agents that operate autonomously while still following operator-defined goals.

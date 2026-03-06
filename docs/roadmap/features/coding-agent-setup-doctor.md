@@ -4,8 +4,7 @@ issue: 7
 productArea:
   - 🔧 agent-setup
 ---
-
-# Coding Agent Setup Doctor
+# Audit Your AI Coding Setup
 
 ## Problem
 
@@ -13,7 +12,7 @@ Repositories often have misconfigured, outdated, or insecure AI agent settings t
 
 ## What we're releasing
 
-The Setup Doctor scans a repository's AI development configuration end-to-end, identifying poorly written instruction files, outdated settings, and incorrect or unsafe tool configurations in a single diagnostic pass.
+Joggr scans a repository's AI development configuration end-to-end, identifying poorly written instruction files, outdated settings, and incorrect or unsafe tool configurations in a single diagnostic pass.
 
 ## Expected outcome
 

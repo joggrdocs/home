@@ -552,14 +552,27 @@ export async function createGitHubClient(ctx: GitHubClientContext): Promise<Resu
               data: {
                 organization: {
                   projectV2: {
+                    fields: {
+                      nodes: Array<{
+                        id: string;
+                        name: string;
+                        options?: Array<{ id: string; name: string }>;
+                        configuration?: {
+                          iterations: Array<{ id: string; title: string }>;
+                        };
+                      }>;
+                    };
                     items: {
                       nodes: Array<{
                         id: string;
                         content: { number?: number; title?: string };
                         fieldValues: {
                           nodes: Array<{
-                            field?: { name?: string };
+                            field?: { id?: string; name?: string };
                             name?: string;
+                            optionId?: string;
+                            iterationId?: string;
+                            title?: string;
                           }>;
                         };
                       }>;
@@ -569,11 +582,41 @@ export async function createGitHubClient(ctx: GitHubClientContext): Promise<Resu
               };
             };
 
+            const fields = data.data.organization.projectV2.fields.nodes;
+            const productAreaField = fields.find((f) => f.name === "Product Area");
+            const optionIdToNameMap = new Map<string, string>();
+
+            if (productAreaField?.options) {
+              for (const option of productAreaField.options) {
+                optionIdToNameMap.set(option.id, option.name);
+              }
+            } else if (productAreaField?.configuration?.iterations) {
+              for (const iteration of productAreaField.configuration.iterations) {
+                optionIdToNameMap.set(iteration.id, iteration.title);
+              }
+            }
+
             const items = data.data.organization.projectV2.items.nodes.map((item) => {
               const statusField = item.fieldValues.nodes.find(
                 (fv) => fv.field?.name === "Status" && fv.name,
               );
               const status = statusField?.name ?? undefined;
+
+              const productAreaFields = item.fieldValues.nodes.filter(
+                (fv) => fv.field?.name === "Product Area",
+              );
+
+              const productAreaNames = productAreaFields
+                .map((fv) => {
+                  const id = fv.optionId ?? fv.iterationId;
+                  if (id && optionIdToNameMap.has(id)) {
+                    return optionIdToNameMap.get(id);
+                  }
+                  return fv.name ?? fv.title;
+                })
+                .filter((name): name is string => name !== undefined);
+
+              const productArea = productAreaNames.length > 0 ? productAreaNames : undefined;
 
               return {
                 id: item.id,
@@ -582,7 +625,7 @@ export async function createGitHubClient(ctx: GitHubClientContext): Promise<Resu
                   title: item.content.title,
                 },
                 status,
-                productArea: undefined,
+                productArea,
               };
             });
 

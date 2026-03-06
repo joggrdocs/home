@@ -4,17 +4,16 @@ issue: 17
 productArea:
   - 📚 documentation
 ---
-
-# Documentation Doctor: Advanced
+# Detect Missing Architecture Documentation
 
 ## Problem
 
-Higher-level documentation such as architecture diagrams, service boundary definitions, and data flow descriptions is frequently absent or outdated, making it difficult for teams to reason about system design and cross-service interactions.
+Critical system knowledge—such as architecture diagrams, service boundaries, and data flows—is often undocumented or outdated. When this information is missing, developers and AI agents struggle to understand how systems interact, making it harder to reason about design decisions and cross-service behavior.
 
 ## What we're releasing
 
-Documentation Doctor: Advanced extends detection beyond basic docs to identify gaps in architecture, service boundary, data flow, and cross-system workflow documentation, giving teams visibility into their most critical knowledge gaps.
+A system architecture documentation scanner that analyzes the codebase and repository context to detect missing or incomplete documentation around architecture, service boundaries, data flows, and cross-system workflows. It surfaces clear recommendations on what architectural knowledge should be documented.
 
 ## Expected outcome
 
-Engineering teams gain a clearer understanding of their system landscape, enabling better architectural decisions and smoother cross-team collaboration on complex, multi-service projects.
+Teams gain visibility into gaps in their architectural documentation, making complex systems easier for developers and AI agents to understand, navigate, and safely modify.
