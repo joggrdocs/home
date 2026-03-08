@@ -9,7 +9,11 @@
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt",
-    "format:check": "oxfmt --check"
+    "format:check": "oxfmt --check",
+    "test": "vitest run --config scripts/vitest.config.ts"
+  },
+  "dependencies": {
+    "diff": "^8.0.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.0.0",
@@ -23,14 +27,12 @@
     "oxlint": "^1.51.0",
     "ts-pattern": "^5.9.0",
     "type-fest": "^5.4.4",
+    "vitest": "^4.0.18",
     "yaml": "^2.8.2"
   },
   "engines": {
     "node": ">=24.0.0",
     "pnpm": ">=10.0.0"
   },
-  "packageManager": "pnpm@10.25.0",
-  "dependencies": {
-    "diff": "^8.0.3"
-  }
+  "packageManager": "pnpm@10.25.0"
 }

@@ -1,8 +1,8 @@
 ---
 paths:
-  - '**/*.md'
-  - '!CLAUDE.md'
-  - '!.claude/**'
+  - "**/*.md"
+  - "!CLAUDE.md"
+  - "!.claude/**"
 ---
 
 # Documentation Rules
@@ -20,11 +20,11 @@ See the full standards: [Writing](../../../docs/contributing/standards/documenta
 
 Use the correct template based on document type. See [Writing Standards](../../../docs/contributing/standards/documentation/writing.md) for full templates:
 
-| Type            | Structure                                              | Title Convention       |
-| --------------- | ------------------------------------------------------ | ---------------------- |
-| Standard        | Overview > Rules > Resources > References              | Noun phrase            |
-| Guide           | Prerequisites > Steps > Verification > Troubleshooting | Starts with verb       |
-| Overview        | Architecture > Key Concepts > Usage > Configuration    | Topic name             |
+| Type            | Structure                                              | Title Convention         |
+| --------------- | ------------------------------------------------------ | ------------------------ |
+| Standard        | Overview > Rules > Resources > References              | Noun phrase              |
+| Guide           | Prerequisites > Steps > Verification > Troubleshooting | Starts with verb         |
+| Overview        | Architecture > Key Concepts > Usage > Configuration    | Topic name               |
 | Troubleshooting | Issue sections with Fix blocks                         | "Domain Troubleshooting" |
 
 ## Sections
@@ -36,7 +36,7 @@ Use the correct template based on document type. See [Writing Standards](../../.
 ## Formatting
 
 - Code examples: minimal snippets showing the pattern, not full files
-- Specify language on all fenced code blocks (```ts, ```bash, etc.)
+- Specify language on all fenced code blocks (`ts, `bash, etc.)
 - Use tables for structured comparisons (Correct vs Incorrect, options, conventions)
 - Prefer relative links for internal docs, full URLs for external
 

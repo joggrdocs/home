@@ -4,6 +4,7 @@ issue: 25
 productArea:
   - 🎮 gg-workflow
 ---
+
 # GG Workspace Management
 
 ## Problem

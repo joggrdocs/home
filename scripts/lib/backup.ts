@@ -169,16 +169,12 @@ export function createBackup(ctx: BackupContext): Backup {
 
         try {
           const files = await readdir(params.sourcePath);
-          const filtered = params.fileExtension
-            ? files.filter((f) => f.endsWith(params.fileExtension))
-            : files;
+          const ext = params.fileExtension;
+          const filtered = ext ? files.filter((f) => f.endsWith(ext)) : files;
 
-          for (const file of filtered) {
-            const srcPath = join(params.sourcePath, file);
-            const dstPath = join(backupPath, file);
-            // eslint-disable-next-line no-await-in-loop
-            await copyFile(srcPath, dstPath);
-          }
+          await Promise.all(
+            filtered.map((file) => copyFile(join(params.sourcePath, file), join(backupPath, file))),
+          );
 
           return [null, backupPath];
         } catch (error) {

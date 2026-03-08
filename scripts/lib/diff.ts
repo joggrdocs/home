@@ -71,7 +71,7 @@ export function displayDiff(logger: Logger, changes: readonly DiffChange[], titl
   const header = title ?? `Changes to be applied (${changes.length} change(s))`;
   logger.info(`┌─ ${header}`);
 
-  for (const change of changes) {
+  changes.forEach((change) => {
     const detail = change.detail ? `: ${change.detail}` : "";
 
     if (change.type === "add") {
@@ -81,7 +81,7 @@ export function displayDiff(logger: Logger, changes: readonly DiffChange[], titl
     } else {
       logger.message(`│ ${change.label}${detail}`);
     }
-  }
+  });
 
   logger.info("└─");
   logger.newlines();

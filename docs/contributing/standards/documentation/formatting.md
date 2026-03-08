@@ -15,8 +15,8 @@ Show only the critical parts. Omit imports, boilerplate, and obvious code.
 This example is focused on the API.
 
 ```ts
-const config = await loadConfig('kidd')
-const scripts = discoverScripts(config)
+const config = await loadConfig("kidd");
+const scripts = discoverScripts(config);
 ```
 
 #### Incorrect
@@ -24,25 +24,25 @@ const scripts = discoverScripts(config)
 This example is too noisy and the reader is distracted by the boilerplate and obvious code.
 
 ```ts
-import { loadConfig } from './lib/config'
-import { discoverScripts } from './lib/discovery'
-import { createRunner } from './runtime/runner'
-import { createContext } from './runtime/context'
-import { log } from '@clack/prompts'
+import { loadConfig } from "./lib/config";
+import { discoverScripts } from "./lib/discovery";
+import { createRunner } from "./runtime/runner";
+import { createContext } from "./runtime/context";
+import { log } from "@clack/prompts";
 
 async function main() {
-  const config = await loadConfig('kidd')
-  const scripts = discoverScripts(config)
-  const runner = createRunner(config)
-  const context = createContext({ cwd: process.cwd() })
+  const config = await loadConfig("kidd");
+  const scripts = discoverScripts(config);
+  const runner = createRunner(config);
+  const context = createContext({ cwd: process.cwd() });
 
   for (const script of scripts) {
-    const result = await runner.execute(script, context)
-    log.info(`Completed: ${result.name}`)
+    const result = await runner.execute(script, context);
+    log.info(`Completed: ${result.name}`);
   }
 }
 
-main()
+main();
 ```
 
 ### Use Full Examples for Copy-Paste Templates
@@ -53,18 +53,18 @@ When the reader should copy the entire block, show everything including imports 
 
 ```ts
 // Full file template - reader copies this
-import { cli, z } from '@kidd-cli/core'
+import { cli, z } from "@kidd-cli/core";
 
 export default cli({
-  description: 'Generate types from the API schema',
+  description: "Generate types from the API schema",
   args: {
-    output: z.string().default('src/generated'),
+    output: z.string().default("src/generated"),
     watch: z.boolean().default(false),
   },
   async run(ctx) {
-    ctx.logger.info(`Generating types to ${ctx.args.output}`)
+    ctx.logger.info(`Generating types to ${ctx.args.output}`);
   },
-})
+});
 ```
 
 ### Follow Code Example Rules
@@ -92,7 +92,7 @@ Always specify the language for syntax highlighting.
 #### Correct
 
 ```ts
-const example = 'typescript'
+const example = "typescript";
 ```
 
 ```bash

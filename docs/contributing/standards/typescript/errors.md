@@ -11,34 +11,37 @@ All operations that can fail in expected ways use the `Result<T, E>` type instea
 Define success and failure as a tuple where the first element is the error (or `null`) and the second is the value (or `null`). Destructure the tuple to check which case occurred.
 
 ```ts
-type Result<T, E = Error> = readonly [E, null] | readonly [null, T]
+type Result<T, E = Error> = readonly [E, null] | readonly [null, T];
 ```
 
 Construct success and failure tuples directly:
 
 ```ts
 // Success
-const success: Result<Config, ParseError> = [null, config]
+const success: Result<Config, ParseError> = [null, config];
 
 // Failure
-const failure: Result<Config, ParseError> = [{ type: 'parse_error', message: 'Invalid JSON' }, null]
+const failure: Result<Config, ParseError> = [
+  { type: "parse_error", message: "Invalid JSON" },
+  null,
+];
 ```
 
 For CLI handlers, use the `HandlerResult` specialization with `ok()` and `fail()` constructors from `src/lib/result.ts`:
 
 ```ts
-type HandlerResult<T = void> = Result<T, HandlerError>
+type HandlerResult<T = void> = Result<T, HandlerError>;
 
 interface HandlerError {
-  readonly message: string
-  readonly hint?: string
-  readonly exitCode?: number
+  readonly message: string;
+  readonly hint?: string;
+  readonly exitCode?: number;
 }
 
-function ok(): HandlerResult<void>
-function ok<T>(value: T): HandlerResult<T>
+function ok(): HandlerResult<void>;
+function ok<T>(value: T): HandlerResult<T>;
 
-function fail(error: HandlerError): HandlerResult<never>
+function fail(error: HandlerError): HandlerResult<never>;
 ```
 
 ### Return Results for Expected Failures
@@ -48,32 +51,32 @@ Use `Result<T, E>` for operations that can fail in expected ways such as parsing
 #### Correct
 
 ```ts
-import type { Result } from '../lib/result.ts'
+import type { Result } from "../lib/result.ts";
 
 interface ParseError {
-  type: 'parse_error' | 'validation_error'
-  message: string
+  type: "parse_error" | "validation_error";
+  message: string;
 }
 
 function parseConfig(json: string): Result<Config, ParseError> {
   try {
-    const data = JSON.parse(json)
-    return [null, data]
+    const data = JSON.parse(json);
+    return [null, data];
   } catch {
-    return [{ type: 'parse_error', message: 'Invalid JSON' }, null]
+    return [{ type: "parse_error", message: "Invalid JSON" }, null];
   }
 }
 
 // Usage — destructure the tuple
-const [parseError, config] = parseConfig(input)
+const [parseError, config] = parseConfig(input);
 
 if (parseError) {
-  logger.error({ error: parseError }, 'Failed to parse config')
-  return
+  logger.error({ error: parseError }, "Failed to parse config");
+  return;
 }
 
 // config is typed as Config
-processConfig(config)
+processConfig(config);
 ```
 
 #### Incorrect
@@ -82,9 +85,9 @@ processConfig(config)
 // Throwing instead of returning a Result
 function parseConfig(json: string): Config {
   if (!json) {
-    throw new Error('Empty input') // Don't throw
+    throw new Error("Empty input"); // Don't throw
   }
-  return JSON.parse(json)
+  return JSON.parse(json);
 }
 ```
 
@@ -97,22 +100,22 @@ Use a wrapper to convert promise rejections into `Result` tuples.
 ```ts
 async function attemptAsync<T, E = unknown>(fn: () => Promise<T>): Promise<Result<T, E>> {
   try {
-    return [null, await fn()]
+    return [null, await fn()];
   } catch (error) {
-    return [error as E, null]
+    return [error as E, null];
   }
 }
 
 // Usage — destructure the tuple
-const [readError, contents] = await attemptAsync(() => readFile(configPath))
+const [readError, contents] = await attemptAsync(() => readFile(configPath));
 
 if (readError) {
-  console.error('Read failed:', readError)
-  return
+  console.error("Read failed:", readError);
+  return;
 }
 
 // contents is typed as string (or whatever readFile returns)
-processContents(contents)
+processContents(contents);
 ```
 
 ### Define Domain-Specific Results
@@ -124,12 +127,12 @@ Create type aliases for consistency within a domain. This keeps function signatu
 ```ts
 // types.ts
 interface ConfigError {
-  type: 'invalid_toml' | 'missing_field' | 'unknown_workspace'
-  message: string
-  details?: unknown
+  type: "invalid_toml" | "missing_field" | "unknown_workspace";
+  message: string;
+  details?: unknown;
 }
 
-export type ConfigResult<T> = Result<T, ConfigError>
+export type ConfigResult<T> = Result<T, ConfigError>;
 
 // implementation
 function loadConfig(path: string): ConfigResult<LaufConfig> {
@@ -146,18 +149,18 @@ Use early returns to chain multiple Result-producing steps. Each step bails out 
 ```ts
 async function runScript(name: string, workspace: string): Promise<Result<RunOutput, ScriptError>> {
   // Step 1: Load config
-  const [configError, config] = loadConfig(workspace)
-  if (configError) return [configError, null]
+  const [configError, config] = loadConfig(workspace);
+  if (configError) return [configError, null];
 
   // Step 2: Resolve script
-  const [resolveError, script] = resolveScript(config, name)
-  if (resolveError) return [resolveError, null]
+  const [resolveError, script] = resolveScript(config, name);
+  if (resolveError) return [resolveError, null];
 
   // Step 3: Execute
-  const [execError, output] = await execute(script)
-  if (execError) return [execError, null]
+  const [execError, output] = await execute(script);
+  if (execError) return [execError, null];
 
-  return [null, output]
+  return [null, output];
 }
 ```
 
@@ -168,24 +171,24 @@ Use destructuring and early returns to handle different error types. For exhaust
 #### Correct
 
 ```ts
-const [error, config] = loadConfig(path)
+const [error, config] = loadConfig(path);
 
 if (error) {
   match(error.type)
-    .with('invalid_toml', () => {
-      logger.warn('Invalid TOML in config file')
+    .with("invalid_toml", () => {
+      logger.warn("Invalid TOML in config file");
     })
-    .with('missing_field', () => {
-      logger.warn('Missing required field')
+    .with("missing_field", () => {
+      logger.warn("Missing required field");
     })
-    .with('unknown_workspace', () => {
-      logger.warn('Unknown workspace')
+    .with("unknown_workspace", () => {
+      logger.warn("Unknown workspace");
     })
-    .exhaustive()
-  return
+    .exhaustive();
+  return;
 }
 
-applyConfig(config)
+applyConfig(config);
 ```
 
 ### Never Throw in Result-Returning Functions
@@ -197,9 +200,9 @@ A function that declares `Result` as its return type must never throw. All failu
 ```ts
 function parse(json: string): Result<Data, ParseError> {
   if (!json) {
-    return [{ type: 'parse_error', message: 'Empty input' }, null]
+    return [{ type: "parse_error", message: "Empty input" }, null];
   }
-  return [null, JSON.parse(json)]
+  return [null, JSON.parse(json)];
 }
 ```
 
@@ -208,9 +211,9 @@ function parse(json: string): Result<Data, ParseError> {
 ```ts
 function parse(json: string): Result<Data, ParseError> {
   if (!json) {
-    throw new Error('Empty input') // Don't throw!
+    throw new Error("Empty input"); // Don't throw!
   }
-  return [null, JSON.parse(json)]
+  return [null, JSON.parse(json)];
 }
 ```
 
@@ -221,17 +224,17 @@ Never access the value element without first confirming the error element is `nu
 #### Correct
 
 ```ts
-const [error, config] = parseConfig(input)
+const [error, config] = parseConfig(input);
 if (!error) {
-  processConfig(config)
+  processConfig(config);
 }
 ```
 
 #### Incorrect
 
 ```ts
-const [, config] = parseConfig(input)
-processConfig(config) // config might be null — error was not checked
+const [, config] = parseConfig(input);
+processConfig(config); // config might be null — error was not checked
 ```
 
 ## References

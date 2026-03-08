@@ -17,15 +17,15 @@ Read `scripts/conf/project.json` at the repository root to get the current list 
 
 Collect the following from the user before proceeding:
 
-| Field | Required | Notes |
-|-------|----------|-------|
-| Title | Yes | Human-readable feature name |
-| Status | Yes | ! One of the statuses from `scripts/conf/project.json` |
-| Summary | Yes | One-sentence description of the feature |
-| Problem | Yes | What limitation or gap this addresses |
-| Solution | Yes | How the feature solves the problem |
-| Impact | Yes | What users gain from this feature |
-| GitHub Issue | No | Whether to search for / create a GitHub issue |
+| Field        | Required | Notes                                                  |
+| ------------ | -------- | ------------------------------------------------------ |
+| Title        | Yes      | Human-readable feature name                            |
+| Status       | Yes      | ! One of the statuses from `scripts/conf/project.json` |
+| Summary      | Yes      | One-sentence description of the feature                |
+| Problem      | Yes      | What limitation or gap this addresses                  |
+| Solution     | Yes      | How the feature solves the problem                     |
+| Impact       | Yes      | What users gain from this feature                      |
+| GitHub Issue | No       | Whether to search for / create a GitHub issue          |
 
 Use `AskUserQuestion` to collect any missing fields. All six content fields (Title, Summary, Problem, Solution, Impact, and Status) are required before creating the file.
 
@@ -87,12 +87,12 @@ issue: <issue number or empty>
 
 The status badge colors follow a darkwave/synthwave palette:
 
-| Status | Color | Badge |
-|--------|-------|-------|
-| Idea | Electric Purple | `![Idea](https://img.shields.io/badge/Idea-%238a04ed)` |
-| Planned | Imperial Blue | `![Planned](https://img.shields.io/badge/Planned-%230C1565)` |
-| In progress | Burnt Orange | `![In progress](https://img.shields.io/badge/In%20progress-%23e85d04)` |
-| Released | Dark Teal | `![Released](https://img.shields.io/badge/Released-%2300a67e)` |
+| Status      | Color           | Badge                                                                  |
+| ----------- | --------------- | ---------------------------------------------------------------------- |
+| Idea        | Electric Purple | `![Idea](https://img.shields.io/badge/Idea-%238a04ed)`                 |
+| Planned     | Imperial Blue   | `![Planned](https://img.shields.io/badge/Planned-%230C1565)`           |
+| In progress | Burnt Orange    | `![In progress](https://img.shields.io/badge/In%20progress-%23e85d04)` |
+| Released    | Dark Teal       | `![Released](https://img.shields.io/badge/Released-%2300a67e)`         |
 
 ### Step 6: Update Overview Table
 

@@ -29,10 +29,10 @@ issue: <issue number or empty>
 
 Every feature file starts with YAML frontmatter containing:
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `status` | Yes | Current status — must match a value from `scripts/conf/project.json` |
-| `issue` | No | GitHub issue number (leave empty if none) |
+| Field    | Required | Description                                                          |
+| -------- | -------- | -------------------------------------------------------------------- |
+| `status` | Yes      | Current status — must match a value from `scripts/conf/project.json` |
+| `issue`  | No       | GitHub issue number (leave empty if none)                            |
 
 ## Status Badges
 
@@ -96,13 +96,13 @@ Convert the feature title to kebab-case:
 
 Examples:
 
-| Title | Filename |
-|-------|----------|
-| Agent Harness | `agent-harness.md` |
-| Coding Agent Setup Doctor | `coding-agent-setup-doctor.md` |
-| GG Workflow | `gg-workflow.md` |
-| Coding Agent Toolkit MCP (Serena) | `coding-agent-toolkit-mcp.md` |
-| Secure Data Access Layer (unmcp) | `secure-data-access-layer.md` |
+| Title                             | Filename                       |
+| --------------------------------- | ------------------------------ |
+| Agent Harness                     | `agent-harness.md`             |
+| Coding Agent Setup Doctor         | `coding-agent-setup-doctor.md` |
+| GG Workflow                       | `gg-workflow.md`               |
+| Coding Agent Toolkit MCP (Serena) | `coding-agent-toolkit-mcp.md`  |
+| Secure Data Access Layer (unmcp)  | `secure-data-access-layer.md`  |
 
 ## Overview Table Row Format
 
@@ -111,6 +111,7 @@ Examples:
 ```
 
 Where `<issue>` is either:
+
 - `[#N](https://github.com/joggrdocs/home/issues/N)` — linked GitHub issue
 - `-` — no issue yet
 

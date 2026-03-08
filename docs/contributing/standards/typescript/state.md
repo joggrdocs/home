@@ -14,15 +14,15 @@ State should never be mutated in place. Return new arrays and objects from every
 
 ```ts
 function addItem(items: readonly Item[], newItem: Item): readonly Item[] {
-  return [...items, newItem]
+  return [...items, newItem];
 }
 
 function updateItem(items: readonly Item[], id: string, updates: Partial<Item>): readonly Item[] {
-  return items.map((item) => (item.id === id ? { ...item, ...updates } : item))
+  return items.map((item) => (item.id === id ? { ...item, ...updates } : item));
 }
 
 function removeItem(items: readonly Item[], id: string): readonly Item[] {
-  return items.filter((item) => item.id !== id)
+  return items.filter((item) => item.id !== id);
 }
 ```
 
@@ -30,12 +30,12 @@ function removeItem(items: readonly Item[], id: string): readonly Item[] {
 
 ```ts
 function addItem(items: Item[], newItem: Item) {
-  items.push(newItem) // Mutation!
+  items.push(newItem); // Mutation!
 }
 
 function updateItem(items: Item[], id: string, updates: Partial<Item>) {
-  const item = items.find((i) => i.id === id)
-  Object.assign(item, updates) // Mutation!
+  const item = items.find((i) => i.id === id);
+  Object.assign(item, updates); // Mutation!
 }
 ```
 
@@ -47,34 +47,34 @@ Use factories and closures to encapsulate state. Never use classes. Mutation ins
 
 ```ts
 function createCache<T>() {
-  const cache = new Map<string, T>()
+  const cache = new Map<string, T>();
 
   return {
     get: (key: string) => cache.get(key),
     set: (key: string, value: T) => {
-      cache.set(key, value)
+      cache.set(key, value);
     },
     has: (key: string) => cache.has(key),
     clear: () => cache.clear(),
-  }
+  };
 }
 
-const configCache = createCache<ResolvedConfig>()
-configCache.set('root', resolvedConfig)
+const configCache = createCache<ResolvedConfig>();
+configCache.set("root", resolvedConfig);
 ```
 
 #### Incorrect
 
 ```ts
 class Cache<T> {
-  private cache = new Map<string, T>()
+  private cache = new Map<string, T>();
 
   get(key: string) {
-    return this.cache.get(key)
+    return this.cache.get(key);
   }
 
   set(key: string, value: T) {
-    this.cache.set(key, value)
+    this.cache.set(key, value);
   }
 }
 ```
@@ -87,29 +87,29 @@ Compute derived values from source state on demand. Never store values that can 
 
 ```ts
 interface WorkspaceState {
-  scripts: readonly Script[]
+  scripts: readonly Script[];
 }
 
 function getScriptCount(state: WorkspaceState): number {
-  return state.scripts.length
+  return state.scripts.length;
 }
 
 function getScriptNames(state: WorkspaceState): readonly string[] {
-  return state.scripts.map((s) => s.name)
+  return state.scripts.map((s) => s.name);
 }
 
 // Usage - compute when needed
-const count = getScriptCount(workspace)
-const names = getScriptNames(workspace)
+const count = getScriptCount(workspace);
+const names = getScriptNames(workspace);
 ```
 
 #### Incorrect
 
 ```ts
 interface WorkspaceState {
-  scripts: Script[]
-  scriptCount: number // Derived - will get out of sync!
-  scriptNames: string[] // Derived - will get out of sync!
+  scripts: Script[];
+  scriptCount: number; // Derived - will get out of sync!
+  scriptNames: string[]; // Derived - will get out of sync!
 }
 ```
 

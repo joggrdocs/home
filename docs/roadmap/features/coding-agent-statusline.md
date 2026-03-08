@@ -4,6 +4,7 @@ status: Upcoming
 productArea:
   - 🛠️ developer-tools
 ---
+
 # Terminal Status for Coding Agents
 
 ## Problem

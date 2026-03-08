@@ -14,45 +14,45 @@ Use factory functions to encapsulate state instead of classes. Factories avoid `
 
 ```ts
 interface Runner {
-  run: (script: string) => Promise<RunResult>
-  stop: () => void
-  isRunning: () => boolean
+  run: (script: string) => Promise<RunResult>;
+  stop: () => void;
+  isRunning: () => boolean;
 }
 
 function createRunner(config: RunnerConfig): Runner {
-  let running = false
+  let running = false;
 
   return {
     run: async (script) => {
-      running = true
-      const result = await execute(script, config)
-      running = false
-      return result
+      running = true;
+      const result = await execute(script, config);
+      running = false;
+      return result;
     },
     stop: () => {
-      running = false
+      running = false;
     },
     isRunning: () => running,
-  }
+  };
 }
 
 // Usage
-const runner = createRunner({ timeout: 5000 })
-await runner.run('build')
+const runner = createRunner({ timeout: 5000 });
+await runner.run("build");
 ```
 
 ```ts
 // Factory can return different implementations
-function createLogger(env: 'dev' | 'prod') {
-  if (env === 'dev') {
+function createLogger(env: "dev" | "prod") {
+  if (env === "dev") {
     return {
       log: (msg: string) => console.log(`[DEV] ${msg}`),
-    }
+    };
   }
 
   return {
     log: (msg: string) => sendToLogService(msg),
-  }
+  };
 }
 ```
 
@@ -60,21 +60,21 @@ function createLogger(env: 'dev' | 'prod') {
 
 ```ts
 class Runner {
-  private running = false
+  private running = false;
 
   constructor(private config: RunnerConfig) {}
 
   async run(script: string) {
-    this.running = true
-    const result = await execute(script, this.config)
-    this.running = false
-    return result
+    this.running = true;
+    const result = await execute(script, this.config);
+    this.running = false;
+    return result;
   }
 }
 
-const runner = new Runner({ timeout: 5000 })
-const fn = runner.run
-fn('build') // `this` is lost!
+const runner = new Runner({ timeout: 5000 });
+const fn = runner.run;
+fn("build"); // `this` is lost!
 ```
 
 ### Transform Data Through Pipelines
@@ -88,14 +88,14 @@ Transform data through pure pipelines. Avoid shared mutable state by returning n
 const result = scripts
   .filter((script) => script.enabled)
   .map((script) => script.name)
-  .join(', ')
+  .join(", ");
 
 // Explicit transformations
 function processConfig(raw: RawConfig): ProcessedConfig {
-  const parsed = parseToml(raw.content)
-  const validated = validateSchema(parsed)
-  const resolved = resolvePaths(validated)
-  return resolved
+  const parsed = parseToml(raw.content);
+  const validated = validateSchema(parsed);
+  const resolved = resolvePaths(validated);
+  return resolved;
 }
 ```
 
@@ -103,15 +103,15 @@ function processConfig(raw: RawConfig): ProcessedConfig {
 
 ```ts
 // Mutating shared state
-const scripts: Script[] = []
+const scripts: Script[] = [];
 
 function addScript(script: Script) {
-  scripts.push(script) // Mutation!
+  scripts.push(script); // Mutation!
 }
 
 // Return new state instead
 function addScript(scripts: readonly Script[], script: Script): Script[] {
-  return [...scripts, script]
+  return [...scripts, script];
 }
 ```
 
@@ -123,24 +123,24 @@ Combine small, focused interfaces and factory functions instead of building inhe
 
 ```ts
 interface Runnable {
-  run: () => Promise<void>
+  run: () => Promise<void>;
 }
 
 interface Configurable {
-  configure: (config: Record<string, unknown>) => void
+  configure: (config: Record<string, unknown>) => void;
 }
 
 function createTask(name: string): Runnable & Configurable {
-  let taskConfig: Record<string, unknown> = {}
+  let taskConfig: Record<string, unknown> = {};
 
   return {
     run: async () => {
-      await execute(name, taskConfig)
+      await execute(name, taskConfig);
     },
     configure: (config) => {
-      taskConfig = { ...config }
+      taskConfig = { ...config };
     },
-  }
+  };
 }
 ```
 

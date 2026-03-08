@@ -29,9 +29,9 @@ Define an interface with a `Params`, `Options`, or `Args` suffix, then destructu
 
 ```ts
 interface RunScriptParams {
-  name: string
-  workspace: string
-  dryRun: boolean
+  name: string;
+  workspace: string;
+  dryRun: boolean;
 }
 
 export function runScript({ name, workspace, dryRun }: RunScriptParams): RunResult {
@@ -39,18 +39,18 @@ export function runScript({ name, workspace, dryRun }: RunScriptParams): RunResu
 }
 
 // Usage is self-documenting
-runScript({ name: 'build', workspace: 'packages/core', dryRun: false })
+runScript({ name: "build", workspace: "packages/core", dryRun: false });
 ```
 
 ```ts
 interface ResolvePathParams {
-  root: string
-  workspace: string
+  root: string;
+  workspace: string;
 }
 
 interface ResolvePathOptions {
-  absolute?: boolean
-  followSymlinks?: boolean
+  absolute?: boolean;
+  followSymlinks?: boolean;
 }
 
 function resolvePath({ root, workspace }: ResolvePathParams, options?: ResolvePathOptions): string {
@@ -67,7 +67,7 @@ function runScript(name: string, workspace: string, dryRun: boolean): RunResult 
 }
 
 // Easy to swap by mistake
-runScript('packages/core', 'build', false)
+runScript("packages/core", "build", false);
 ```
 
 ### Document All Functions with JSDoc
@@ -104,7 +104,7 @@ export function resolveScript({
  * @returns The normalized name.
  */
 function normalizeName(name: string): string {
-  return kebabCase(name)
+  return kebabCase(name);
 }
 ```
 
@@ -116,7 +116,7 @@ export function resolveScript(params: ResolveScriptParams) {}
 
 // Missing @private on non-exported function
 function normalizeName(name: string): string {
-  return kebabCase(name)
+  return kebabCase(name);
 }
 
 // Listing every property in JSDoc
@@ -136,7 +136,7 @@ Prefer pure functions that have no side effects and return predictable outputs. 
 ```ts
 // Pure function - no side effects
 function buildScriptCommand(script: Script, args: readonly string[]): string {
-  return [script.command, ...args].join(' ')
+  return [script.command, ...args].join(" ");
 }
 ```
 
@@ -148,14 +148,14 @@ function validateConfig(config: LaufConfig): ValidationResult {
 
 // Side effects isolated in handler
 async function handleInit(config: LaufConfig) {
-  const validation = validateConfig(config) // Pure
+  const validation = validateConfig(config); // Pure
 
   if (!validation.ok) {
-    logger.warn({ validation }, 'Invalid config') // Side effect at edge
-    return
+    logger.warn({ validation }, "Invalid config"); // Side effect at edge
+    return;
   }
 
-  await writeConfig(config) // Side effect at edge
+  await writeConfig(config); // Side effect at edge
 }
 ```
 
@@ -164,10 +164,10 @@ async function handleInit(config: LaufConfig) {
 ```ts
 // Side effects mixed into business logic
 function buildScriptCommand(script: Script, args: readonly string[]): string {
-  console.log('Building command...') // Side effect
-  const cmd = [script.command, ...args].join(' ')
-  analytics.track('command_built') // Side effect
-  return cmd
+  console.log("Building command..."); // Side effect
+  const cmd = [script.command, ...args].join(" ");
+  analytics.track("command_built"); // Side effect
+  return cmd;
 }
 ```
 
@@ -179,24 +179,24 @@ Prefer small, focused functions that can be composed together. Use early returns
 
 ```ts
 // Small, focused functions
-const normalize = (s: string) => s.trim().toLowerCase()
-const validate = (s: string) => s.length > 0
-const format = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+const normalize = (s: string) => s.trim().toLowerCase();
+const validate = (s: string) => s.length > 0;
+const format = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 // Composed together
 function processName(input: string): string | null {
-  const normalized = normalize(input)
-  if (!validate(normalized)) return null
-  return format(normalized)
+  const normalized = normalize(input);
+  if (!validate(normalized)) return null;
+  return format(normalized);
 }
 ```
 
 ```ts
 // Early returns to avoid deep nesting
 function process(data: Data) {
-  if (data.type !== 'script') return
-  if (data.status !== 'active') return
-  if (data.items.length === 0) return
+  if (data.type !== "script") return;
+  if (data.status !== "active") return;
+  if (data.items.length === 0) return;
 
   // Main logic here
 }
@@ -207,8 +207,8 @@ function process(data: Data) {
 ```ts
 // Deeply nested conditionals
 function process(data: Data) {
-  if (data.type === 'script') {
-    if (data.status === 'active') {
+  if (data.type === "script") {
+    if (data.status === "active") {
       if (data.items.length > 0) {
         // ...
       }

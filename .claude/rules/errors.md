@@ -1,6 +1,6 @@
 ---
 paths:
-  - 'scripts/**/*.ts'
+  - "scripts/**/*.ts"
 ---
 
 # Error Handling Rules
@@ -10,7 +10,7 @@ All expected failures use the `Result<T, E>` tuple type. Never throw exceptions.
 ## Result Type
 
 ```ts
-type Result<T, E = Error> = readonly [E, null] | readonly [null, T]
+type Result<T, E = Error> = readonly [E, null] | readonly [null, T];
 ```
 
 - Success: `[null, value]`
@@ -25,21 +25,21 @@ type Result<T, E = Error> = readonly [E, null] | readonly [null, T]
 ## Chaining with Early Returns
 
 ```ts
-const [configError, config] = loadConfig(workspace)
-if (configError) return [configError, null]
+const [configError, config] = loadConfig(workspace);
+if (configError) return [configError, null];
 
-const [resolveError, result] = resolve(config, name)
-if (resolveError) return [resolveError, null]
+const [resolveError, result] = resolve(config, name);
+if (resolveError) return [resolveError, null];
 
-return [null, result]
+return [null, result];
 ```
 
 ## Error Type Pattern
 
 ```ts
 interface ConfigError {
-  readonly type: 'invalid_json' | 'missing_field' | 'unknown_key'
-  readonly message: string
+  readonly type: "invalid_json" | "missing_field" | "unknown_key";
+  readonly message: string;
 }
 ```
 

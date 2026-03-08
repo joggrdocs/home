@@ -13,18 +13,18 @@ All bindings must be `const`. No reassignment, no mutation. Mutable state inside
 #### Correct
 
 ```ts
-const timeout = 5000
-const scripts = config.scripts.filter(isEnabled)
+const timeout = 5000;
+const scripts = config.scripts.filter(isEnabled);
 ```
 
 #### Incorrect
 
 ```ts
-let timeout = 5000
-timeout = 10000
+let timeout = 5000;
+timeout = 10000;
 
-let scripts: Script[] = []
-scripts.push(newScript)
+let scripts: Script[] = [];
+scripts.push(newScript);
 ```
 
 ### No Loops
@@ -34,17 +34,17 @@ Use `map`, `filter`, `reduce`, `flatMap`, and `es-toolkit` utilities instead of 
 #### Correct
 
 ```ts
-const names = scripts.map((s) => s.name)
-const enabled = scripts.filter((s) => s.enabled)
-const total = items.reduce((sum, item) => sum + item.count, 0)
+const names = scripts.map((s) => s.name);
+const enabled = scripts.filter((s) => s.enabled);
+const total = items.reduce((sum, item) => sum + item.count, 0);
 ```
 
 #### Incorrect
 
 ```ts
-const names: string[] = []
+const names: string[] = [];
 for (const script of scripts) {
-  names.push(script.name)
+  names.push(script.name);
 }
 ```
 
@@ -63,7 +63,7 @@ Use plain objects, closures, and factory functions. Classes are permitted only w
 
 ```ts
 export function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1)
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 ```
 
@@ -72,7 +72,7 @@ export function capitalize(s: string) {
 ```ts
 class StringUtils {
   static capitalize(s: string) {
-    return s.charAt(0).toUpperCase() + s.slice(1)
+    return s.charAt(0).toUpperCase() + s.slice(1);
   }
 }
 ```
@@ -90,9 +90,9 @@ Return errors as values using the `Result` tuple type. No `throw` statements or 
 ```ts
 function parseConfig(raw: string): Result<Config, ParseError> {
   if (!raw) {
-    return [{ type: 'parse_error', message: 'Empty input' }, null]
+    return [{ type: "parse_error", message: "Empty input" }, null];
   }
-  return [null, JSON.parse(raw)]
+  return [null, JSON.parse(raw)];
 }
 ```
 
@@ -101,9 +101,9 @@ function parseConfig(raw: string): Result<Config, ParseError> {
 ```ts
 function parseConfig(raw: string): Config {
   if (!raw) {
-    throw new Error('Empty input')
+    throw new Error("Empty input");
   }
-  return JSON.parse(raw)
+  return JSON.parse(raw);
 }
 ```
 
@@ -115,7 +115,7 @@ Do not mutate objects or arrays after creation. Return new values from every tra
 
 ```ts
 function addScript(scripts: readonly Script[], script: Script): readonly Script[] {
-  return [...scripts, script]
+  return [...scripts, script];
 }
 ```
 
@@ -123,7 +123,7 @@ function addScript(scripts: readonly Script[], script: Script): readonly Script[
 
 ```ts
 function addScript(scripts: Script[], script: Script) {
-  scripts.push(script)
+  scripts.push(script);
 }
 ```
 
@@ -135,16 +135,16 @@ Use `if`/`else` or `match` expressions. Ternaries are banned by the linter.
 
 ```ts
 if (isVerbose) {
-  log.info(details)
+  log.info(details);
 } else {
-  log.info(summary)
+  log.info(summary);
 }
 ```
 
 #### Incorrect
 
 ```ts
-const message = isVerbose ? details : summary
+const message = isVerbose ? details : summary;
 ```
 
 ### No Optional Chaining
@@ -155,14 +155,14 @@ Use explicit `if`/`else` or pattern matching instead of `?.`.
 
 ```ts
 if (config.scripts) {
-  runAll(config.scripts)
+  runAll(config.scripts);
 }
 ```
 
 #### Incorrect
 
 ```ts
-config.scripts?.forEach(run)
+config.scripts?.forEach(run);
 ```
 
 ### No `any`
@@ -174,9 +174,9 @@ Use `unknown`, generics, or proper types. Narrow with type guards when needed.
 ```ts
 function parse(data: unknown): Result<Config, ParseError> {
   if (!isPlainObject(data)) {
-    return [{ type: 'parse_error', message: 'Expected object' }, null]
+    return [{ type: "parse_error", message: "Expected object" }, null];
   }
-  return [null, validateConfig(data)]
+  return [null, validateConfig(data)];
 }
 ```
 
@@ -184,7 +184,7 @@ function parse(data: unknown): Result<Config, ParseError> {
 
 ```ts
 function parse(data: any): Config {
-  return data
+  return data;
 }
 ```
 
@@ -195,15 +195,15 @@ When passing a named function to a higher-order function, pass it directly inste
 #### Correct
 
 ```ts
-const valid = scripts.filter(isEnabled)
-const names = items.map(getName)
+const valid = scripts.filter(isEnabled);
+const names = items.map(getName);
 ```
 
 #### Incorrect
 
 ```ts
-const valid = scripts.filter((s) => isEnabled(s))
-const names = items.map((item) => getName(item))
+const valid = scripts.filter((s) => isEnabled(s));
+const names = items.map((item) => getName(item));
 ```
 
 ### ESM Only
@@ -213,17 +213,17 @@ Use ES module syntax with `verbatimModuleSyntax`. Use `import type` for type-onl
 #### Correct
 
 ```ts
-import type { Config } from './types'
-import { readFile } from 'node:fs/promises'
-import { loadConfig } from './lib/config'
+import type { Config } from "./types";
+import { readFile } from "node:fs/promises";
+import { loadConfig } from "./lib/config";
 ```
 
 #### Incorrect
 
 ```ts
-const fs = require('fs')
-import { Config } from './types' // should use import type
-import { readFile } from 'fs' // should use node: protocol
+const fs = require("fs");
+import { Config } from "./types"; // should use import type
+import { readFile } from "fs"; // should use node: protocol
 ```
 
 ### No IIFEs
@@ -241,7 +241,7 @@ async function execute(options: Options): Promise<void> {
 }
 
 function start(options: Options): void {
-  void execute(options)
+  void execute(options);
 }
 ```
 
@@ -251,7 +251,7 @@ function start(options: Options): void {
 function start(options: Options): void {
   void (async () => {
     // ...
-  })()
+  })();
 }
 ```
 
@@ -266,27 +266,27 @@ Organize imports into three groups separated by blank lines, sorted alphabetical
 #### Correct
 
 ```ts
-import { readdir } from 'node:fs/promises'
-import { basename, resolve } from 'node:path'
+import { readdir } from "node:fs/promises";
+import { basename, resolve } from "node:path";
 
-import { isPlainObject } from 'es-toolkit'
-import { match } from 'ts-pattern'
+import { isPlainObject } from "es-toolkit";
+import { match } from "ts-pattern";
 
-import type { Command } from '../types.js'
-import { createLogger } from '../lib/logger.js'
-import { registerCommandArgs } from './args.js'
-import type { ResolvedRef } from './register.js'
+import type { Command } from "../types.js";
+import { createLogger } from "../lib/logger.js";
+import { registerCommandArgs } from "./args.js";
+import type { ResolvedRef } from "./register.js";
 ```
 
 #### Incorrect
 
 ```ts
-import { match } from 'ts-pattern'
-import { readdir } from 'node:fs/promises' // node: should be first
-import { registerCommandArgs } from './args.js'
-import type { Command } from '../types.js' // ../ should come before ./
-import { isPlainObject } from 'es-toolkit'
-import { createLogger, type Logger } from '../lib/logger.js' // no inline type specifiers
+import { match } from "ts-pattern";
+import { readdir } from "node:fs/promises"; // node: should be first
+import { registerCommandArgs } from "./args.js";
+import type { Command } from "../types.js"; // ../ should come before ./
+import { isPlainObject } from "es-toolkit";
+import { createLogger, type Logger } from "../lib/logger.js"; // no inline type specifiers
 ```
 
 ### File Structure
@@ -304,9 +304,9 @@ Exported functions appear first so readers see the public API without scrolling.
 #### Correct
 
 ```ts
-import type { Config } from '../types.js'
+import type { Config } from "../types.js";
 
-const DEFAULT_NAME = 'untitled'
+const DEFAULT_NAME = "untitled";
 
 /**
  * Load and validate a configuration file.
@@ -315,8 +315,8 @@ const DEFAULT_NAME = 'untitled'
  * @returns The validated configuration record.
  */
 export function loadConfig(path: string): Config {
-  const raw = readRawConfig(path)
-  return validateConfig(raw)
+  const raw = readRawConfig(path);
+  return validateConfig(raw);
 }
 
 // ---------------------------------------------------------------------------
@@ -358,8 +358,8 @@ function validateConfig(raw: string): Config {
 }
 
 export function loadConfig(path: string): Config {
-  const raw = readRawConfig(path)
-  return validateConfig(raw)
+  const raw = readRawConfig(path);
+  return validateConfig(raw);
 }
 ```
 

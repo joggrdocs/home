@@ -4,6 +4,7 @@ status: Upcoming
 productArea:
   - 🔌 context-integration
 ---
+
 # Coding Agent Toolkit MCP (Serena)
 
 ## Problem

@@ -5,6 +5,7 @@ productArea:
   - 🎮 gg-workflow
   - 🛠️ developer-tools
 ---
+
 # GG Git Automation
 
 ## Problem

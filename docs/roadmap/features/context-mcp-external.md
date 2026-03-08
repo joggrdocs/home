@@ -4,6 +4,7 @@ status: Upcoming
 productArea:
   - 🔌 context-integration
 ---
+
 # Instant Access to External Docs for Agents
 
 ## Problem

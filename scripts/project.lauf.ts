@@ -1,17 +1,20 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { lauf, z } from "laufen";
 
 import { createBackup } from "./lib/backup.js";
+import type { ConfigField, ConfigView, ProjectConfig } from "./lib/config.js";
+import { readProjectConfig } from "./lib/config.js";
+import { displayDiff, type DiffChange } from "./lib/diff.js";
 import { displayDryRunWarning } from "./lib/dry-run-warning.js";
-import { createGitHubClient } from "./lib/github-client.js";
 import type { ProjectField, ProjectView } from "./lib/github-client.js";
+import { createGitHubClient } from "./lib/github-client.js";
 
 /**
  * Built-in project fields that cannot be created or deleted.
  */
-const BUILT_IN_FIELDS = new Set([
+export const BUILT_IN_FIELDS = new Set([
   "Title",
   "Assignees",
   "Labels",
@@ -29,45 +32,16 @@ const BUILT_IN_FIELDS = new Set([
 // Types
 // ---------------------------------------------------------------------------
 
-interface ProjectConfig {
-  project: {
-    owner: string;
-    number: number;
-    title: string;
-    description: string;
-    visibility: "PUBLIC" | "PRIVATE";
-    readme: string;
-  };
-  fields: ConfigField[];
-  views: ConfigView[];
-  statusMapping?: Record<string, string>;
+export interface FieldDiff {
+  readonly toCreate: readonly ConfigField[];
+  readonly toDelete: readonly ProjectField[];
+  readonly toUpdate: ReadonlyArray<{ readonly config: ConfigField; readonly github: ProjectField }>;
 }
 
-interface ConfigField {
-  name: string;
-  type: string;
-  options?: Array<{ name: string; description?: string; color?: string }>;
-}
-
-interface ConfigView {
-  name: string;
-  layout: string;
-  groupBy: string | null;
-  sortBy: { field: string; direction: string } | null;
-  fields: string[];
-  filter?: string;
-}
-
-interface FieldDiff {
-  toCreate: ConfigField[];
-  toDelete: ProjectField[];
-  toUpdate: Array<{ config: ConfigField; github: ProjectField }>;
-}
-
-interface ViewDriftEntry {
-  view: string;
-  type: "missing_from_github" | "not_in_config" | "mismatch";
-  details?: string;
+export interface ViewDriftEntry {
+  readonly view: string;
+  readonly type: "missing_from_github" | "not_in_config" | "mismatch";
+  readonly details?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -85,6 +59,7 @@ export default lauf({
       .describe("Sync direction: to-github or from-github"),
   },
   async run(ctx) {
+    // Mutable flag for interrupt handling at the I/O boundary.
     let cancelled = false;
 
     const handleInterrupt = () => {
@@ -111,28 +86,20 @@ export default lauf({
       }
 
       // Determine sync direction
-      let direction = ctx.args.direction;
-
+      const direction = await resolveDirection(ctx, cancelled);
       if (!direction) {
-        const [promptErr, selected] = await ctx.prompts.select({
-          message: "Select sync direction",
-          options: [
-            { value: "to-github", label: "To GitHub (update GitHub from local config)" },
-            { value: "from-github", label: "From GitHub (update local config from GitHub)" },
-          ],
-        });
-
-        if (promptErr?.cancelled || cancelled) {
-          ctx.logger.warn("Cancelled by user");
-          return 1;
-        }
-
-        direction = selected as "to-github" | "from-github";
+        ctx.logger.warn("Cancelled by user");
+        return 1;
       }
 
       // Step 1: Read config
       ctx.spinner.start("Reading project config...");
-      const config = await readProjectConfig(ctx.root);
+      const [configError, config] = await readProjectConfig(ctx.root);
+      if (configError) {
+        ctx.spinner.stop();
+        ctx.logger.error(`Failed to read config: ${configError.message}`);
+        return 1;
+      }
       ctx.spinner.stop(
         `Read config for project #${config.project.number} (${config.project.owner})`,
       );
@@ -192,10 +159,11 @@ export default lauf({
         const updatedConfig: ProjectConfig = {
           project: {
             owner,
+            repo: config.project.repo,
             number,
             title: metadata.title,
             description: metadata.shortDescription,
-            visibility: metadata.public ? "PUBLIC" : "PRIVATE",
+            visibility: resolveVisibility(metadata.public),
             readme: metadata.readme,
           },
           fields: customFields,
@@ -204,18 +172,12 @@ export default lauf({
         };
 
         // Compute changes
-        interface Change {
-          type: "modify" | "add" | "remove";
-          field: string;
-          detail: string;
-        }
-
-        const changes: Change[] = [];
+        const changes: DiffChange[] = [];
 
         if (config.project.title !== metadata.title) {
           changes.push({
             type: "modify",
-            field: "project.title",
+            label: "project.title",
             detail: `"${config.project.title}" → "${metadata.title}"`,
           });
         }
@@ -223,16 +185,16 @@ export default lauf({
         if (config.project.description !== metadata.shortDescription) {
           changes.push({
             type: "modify",
-            field: "project.description",
+            label: "project.description",
             detail: `"${config.project.description}" → "${metadata.shortDescription}"`,
           });
         }
 
-        const configVisibility = metadata.public ? "PUBLIC" : "PRIVATE";
+        const configVisibility = resolveVisibility(metadata.public);
         if (config.project.visibility !== configVisibility) {
           changes.push({
             type: "modify",
-            field: "project.visibility",
+            label: "project.visibility",
             detail: `${config.project.visibility} → ${configVisibility}`,
           });
         }
@@ -240,7 +202,7 @@ export default lauf({
         if (config.project.readme !== metadata.readme) {
           changes.push({
             type: "modify",
-            field: "project.readme",
+            label: "project.readme",
             detail: "updated",
           });
         }
@@ -248,48 +210,28 @@ export default lauf({
         const configFieldNames = new Set(config.fields.map((f) => f.name));
         const githubFieldNames = new Set(customFields.map((f) => f.name));
 
-        for (const fieldName of githubFieldNames) {
-          if (!configFieldNames.has(fieldName)) {
-            changes.push({
-              type: "add",
-              field: "fields",
-              detail: fieldName,
-            });
-          }
-        }
+        const addedFields: DiffChange[] = [...githubFieldNames]
+          .filter((name) => !configFieldNames.has(name))
+          .map((name) => ({ type: "add" as const, label: "fields", detail: name }));
 
-        for (const fieldName of configFieldNames) {
-          if (!githubFieldNames.has(fieldName)) {
-            changes.push({
-              type: "remove",
-              field: "fields",
-              detail: fieldName,
-            });
-          }
-        }
+        const removedFields: DiffChange[] = [...configFieldNames]
+          .filter((name) => !githubFieldNames.has(name))
+          .map((name) => ({ type: "remove" as const, label: "fields", detail: name }));
+
+        changes.push(...addedFields, ...removedFields);
 
         const configViewNames = new Set(config.views.map((v) => v.name));
         const githubViewNames = new Set(configViews.map((v) => v.name));
 
-        for (const viewName of githubViewNames) {
-          if (!configViewNames.has(viewName)) {
-            changes.push({
-              type: "add",
-              field: "views",
-              detail: viewName,
-            });
-          }
-        }
+        const addedViews: DiffChange[] = [...githubViewNames]
+          .filter((name) => !configViewNames.has(name))
+          .map((name) => ({ type: "add" as const, label: "views", detail: name }));
 
-        for (const viewName of configViewNames) {
-          if (!githubViewNames.has(viewName)) {
-            changes.push({
-              type: "remove",
-              field: "views",
-              detail: viewName,
-            });
-          }
-        }
+        const removedViews: DiffChange[] = [...configViewNames]
+          .filter((name) => !githubViewNames.has(name))
+          .map((name) => ({ type: "remove" as const, label: "views", detail: name }));
+
+        changes.push(...addedViews, ...removedViews);
 
         if (changes.length === 0) {
           ctx.logger.success("Local config already matches GitHub");
@@ -297,24 +239,7 @@ export default lauf({
         }
 
         // Display changes
-        const red = "\x1b[31m";
-        const green = "\x1b[32m";
-        const strike = "\x1b[9m";
-        const reset = "\x1b[0m";
-
-        ctx.logger.newlines();
-        ctx.logger.info(`┌─ Changes to be applied (${changes.length} change(s))`);
-        for (const change of changes) {
-          if (change.type === "add") {
-            ctx.logger.message(`│ ${green}+ ${change.field}: ${change.detail}${reset}`);
-          } else if (change.type === "remove") {
-            ctx.logger.message(`│ ${red}${strike}- ${change.field}: ${change.detail}${reset}`);
-          } else {
-            ctx.logger.message(`│ ${change.field}: ${change.detail}`);
-          }
-        }
-        ctx.logger.info("└─");
-        ctx.logger.newlines();
+        displayDiff(ctx.logger, changes);
 
         if (dryRun) {
           return 0;
@@ -326,7 +251,7 @@ export default lauf({
           initialValue: true,
         });
 
-        if (confirmErr?.cancelled || !confirmed || cancelled) {
+        if ((confirmErr !== null && confirmErr.cancelled) || !confirmed || cancelled) {
           ctx.logger.warn("Cancelled by user");
           return 1;
         }
@@ -450,7 +375,8 @@ export default lauf({
               initialValue: false,
             });
 
-            if (!err?.cancelled && confirmed) {
+            if ((err === null || !err.cancelled) && confirmed) {
+              // Sequential — each API call must complete before the next, with cancellation support.
               for (const field of diff.toDelete) {
                 if (cancelled) {
                   ctx.logger.warn("Cancelled by user");
@@ -471,7 +397,7 @@ export default lauf({
             }
           }
 
-          // Create fields
+          // Create fields — sequential with cancellation support.
           for (const field of diff.toCreate) {
             if (cancelled) {
               ctx.logger.warn("Cancelled by user");
@@ -479,14 +405,7 @@ export default lauf({
             }
             ctx.spinner.start(`Creating field "${field.name}"...`);
 
-            const selectOptions =
-              field.type === "SINGLE_SELECT" && field.options
-                ? field.options.map((o) => ({
-                    name: o.name,
-                    description: o.description ?? "",
-                    color: o.color ?? "GRAY",
-                  }))
-                : undefined;
+            const selectOptions = buildSelectOptions(field);
 
             // eslint-disable-next-line no-await-in-loop
             const [createErr] = await github.projects.fields.create({
@@ -504,7 +423,7 @@ export default lauf({
             }
           }
 
-          // Update field options
+          // Update field options — sequential with cancellation support.
           for (const { config: fieldConfig, github: ghField } of diff.toUpdate) {
             if (cancelled) {
               ctx.logger.warn("Cancelled by user");
@@ -545,11 +464,10 @@ export default lauf({
         ctx.logger.success("All views are in sync");
       } else {
         ctx.logger.warn(`${viewDrift.length} view drift(s) detected`);
-        for (const drift of viewDrift) {
-          ctx.logger.message(
-            `  - ${drift.view}: ${drift.type}${drift.details ? ` (${drift.details})` : ""}`,
-          );
-        }
+        viewDrift.forEach((drift) => {
+          const detailsSuffix = formatDriftDetails(drift.details);
+          ctx.logger.message(`  - ${drift.view}: ${drift.type}${detailsSuffix}`);
+        });
         ctx.logger.info("Note: Views must be synced manually via the GitHub UI");
       }
 
@@ -564,16 +482,6 @@ export default lauf({
 // ---------------------------------------------------------------------------
 // Private
 // ---------------------------------------------------------------------------
-
-/**
- * Reads project configuration from scripts/conf/project.json.
- *
- * @private
- */
-async function readProjectConfig(root: string): Promise<ProjectConfig> {
-  const raw = await readFile(join(root, "scripts/conf/project.json"), "utf-8");
-  return JSON.parse(raw) as ProjectConfig;
-}
 
 /**
  * Syncs project metadata to GitHub.
@@ -612,7 +520,7 @@ async function syncMetadata(
   }
 
   if (changes.length > 0) {
-    ctx.logger.info("Changes:", ...changes);
+    ctx.logger.info(`Changes: ${changes.join(", ")}`);
 
     if (!dryRun) {
       ctx.logger.warn("Metadata updates require manual changes via GitHub UI");
@@ -627,32 +535,31 @@ async function syncMetadata(
  *
  * @private
  */
-function computeFieldDiffs(configFields: ConfigField[], githubFields: ProjectField[]): FieldDiff {
+export function computeFieldDiffs(
+  configFields: readonly ConfigField[],
+  githubFields: readonly ProjectField[],
+): FieldDiff {
   const customGithubFields = githubFields.filter((f) => !BUILT_IN_FIELDS.has(f.name));
 
   const githubByName = new Map(customGithubFields.map((f) => [f.name, f]));
   const configByName = new Map(configFields.map((f) => [f.name, f]));
 
-  const toCreate: ConfigField[] = [];
-  const toUpdate: Array<{ config: ConfigField; github: ProjectField }> = [];
+  const toCreate = configFields.filter((cf) => !githubByName.has(cf.name));
 
-  for (const cf of configFields) {
-    const gf = githubByName.get(cf.name);
-    if (!gf) {
-      toCreate.push(cf);
-    } else if (cf.type === "SINGLE_SELECT" && gf.options) {
-      const configOptionNames = new Set(cf.options?.map((o) => o.name) ?? []);
-      const githubOptionNames = new Set(gf.options.map((o) => o.name));
-
-      const optionsChanged =
-        configOptionNames.size !== githubOptionNames.size ||
-        [...configOptionNames].some((n) => !githubOptionNames.has(n));
-
-      if (optionsChanged) {
-        toUpdate.push({ config: cf, github: gf });
+  const toUpdate = configFields
+    .filter((cf) => {
+      const gf = githubByName.get(cf.name);
+      if (!gf || cf.type !== "SINGLE_SELECT" || !gf.options) {
+        return false;
       }
-    }
-  }
+      const configOptionNames = new Set((cf.options ?? []).map((o) => o.name));
+      const githubOptionNames = new Set(gf.options.map((o) => o.name));
+      return (
+        configOptionNames.size !== githubOptionNames.size ||
+        [...configOptionNames].some((n) => !githubOptionNames.has(n))
+      );
+    })
+    .map((cf) => ({ config: cf, github: githubByName.get(cf.name) as ProjectField }));
 
   const toDelete = customGithubFields.filter((gf) => !configByName.has(gf.name));
 
@@ -664,7 +571,7 @@ function computeFieldDiffs(configFields: ConfigField[], githubFields: ProjectFie
  *
  * @private
  */
-function formatSortField(sortBy: { field: string; direction: string } | null): string {
+export function formatSortField(sortBy: { field: string; direction: string } | null): string {
   if (sortBy) {
     return `${sortBy.field} ${sortBy.direction}`;
   }
@@ -676,56 +583,53 @@ function formatSortField(sortBy: { field: string; direction: string } | null): s
  *
  * @private
  */
-function detectViewDrift(configViews: ConfigView[], githubViews: ProjectView[]): ViewDriftEntry[] {
+export function detectViewDrift(
+  configViews: readonly ConfigView[],
+  githubViews: readonly ProjectView[],
+): readonly ViewDriftEntry[] {
   const configByName = new Map(configViews.map((v) => [v.name, v]));
   const githubByName = new Map(githubViews.map((v) => [v.name, v]));
 
-  const drift: ViewDriftEntry[] = [];
-
-  for (const cv of configViews) {
+  const configDrift = configViews.flatMap((cv): ViewDriftEntry[] => {
     const gv = githubByName.get(cv.name);
     if (!gv) {
-      drift.push({ view: cv.name, type: "missing_from_github" });
-    } else {
-      const details: string[] = [];
-
-      if (cv.layout !== gv.layout) {
-        details.push(`layout: ${gv.layout} → ${cv.layout}`);
-      }
-
-      const githubGroupBy = gv.groupByFields[0]?.name ?? null;
-      if (cv.groupBy !== githubGroupBy) {
-        details.push(`groupBy: ${githubGroupBy ?? "none"} → ${cv.groupBy ?? "none"}`);
-      }
-
-      const githubSortBy = gv.sortByFields[0]
-        ? { field: gv.sortByFields[0].field.name, direction: gv.sortByFields[0].direction }
-        : null;
-
-      if (
-        (cv.sortBy === null && githubSortBy !== null) ||
-        (cv.sortBy !== null && githubSortBy === null) ||
-        (cv.sortBy &&
-          githubSortBy &&
-          (cv.sortBy.field !== githubSortBy.field ||
-            cv.sortBy.direction !== githubSortBy.direction))
-      ) {
-        details.push(`sortBy: ${formatSortField(githubSortBy)} → ${formatSortField(cv.sortBy)}`);
-      }
-
-      if (details.length > 0) {
-        drift.push({ view: cv.name, type: "mismatch", details: details.join("; ") });
-      }
+      return [{ view: cv.name, type: "missing_from_github" }];
     }
-  }
 
-  for (const gv of githubViews) {
-    if (!configByName.has(gv.name)) {
-      drift.push({ view: gv.name, type: "not_in_config" });
+    const details: string[] = [];
+
+    if (cv.layout !== gv.layout) {
+      details.push(`layout: ${gv.layout} → ${cv.layout}`);
     }
-  }
 
-  return drift;
+    const githubGroupBy = extractFirstFieldName(gv.groupByFields);
+    if (cv.groupBy !== githubGroupBy) {
+      details.push(`groupBy: ${githubGroupBy ?? "none"} → ${cv.groupBy ?? "none"}`);
+    }
+
+    const githubSortBy = extractSortBy(gv.sortByFields);
+
+    if (
+      (cv.sortBy === null && githubSortBy !== null) ||
+      (cv.sortBy !== null && githubSortBy === null) ||
+      (cv.sortBy &&
+        githubSortBy &&
+        (cv.sortBy.field !== githubSortBy.field || cv.sortBy.direction !== githubSortBy.direction))
+    ) {
+      details.push(`sortBy: ${formatSortField(githubSortBy)} → ${formatSortField(cv.sortBy)}`);
+    }
+
+    if (details.length > 0) {
+      return [{ view: cv.name, type: "mismatch", details: details.join("; ") }];
+    }
+    return [];
+  });
+
+  const extraViews = githubViews
+    .filter((gv) => !configByName.has(gv.name))
+    .map((gv): ViewDriftEntry => ({ view: gv.name, type: "not_in_config" }));
+
+  return [...configDrift, ...extraViews];
 }
 
 /**
@@ -733,15 +637,19 @@ function detectViewDrift(configViews: ConfigView[], githubViews: ProjectView[]):
  *
  * @private
  */
-function convertGitHubFieldToConfig(field: ProjectField): ConfigField | null {
+export function convertGitHubFieldToConfig(field: ProjectField): ConfigField | null {
   if (BUILT_IN_FIELDS.has(field.name)) {
     return null;
+  }
+
+  if (field.options === undefined) {
+    return { name: field.name, type: field.type };
   }
 
   return {
     name: field.name,
     type: field.type,
-    options: field.options?.map((o) => ({ name: o.name })),
+    options: field.options.map((o) => ({ name: o.name })),
   };
 }
 
@@ -750,14 +658,12 @@ function convertGitHubFieldToConfig(field: ProjectField): ConfigField | null {
  *
  * @private
  */
-function convertGitHubViewToConfig(view: ProjectView): ConfigView {
+export function convertGitHubViewToConfig(view: ProjectView): ConfigView {
   return {
     name: view.name,
     layout: view.layout,
-    groupBy: view.groupByFields[0]?.name ?? null,
-    sortBy: view.sortByFields[0]
-      ? { field: view.sortByFields[0].field.name, direction: view.sortByFields[0].direction }
-      : null,
+    groupBy: extractFirstFieldName(view.groupByFields),
+    sortBy: extractSortBy(view.sortByFields),
     fields: view.visibleFields.map((f) => f.name),
     filter: view.filter ?? undefined,
   };
@@ -772,4 +678,103 @@ async function writeProjectConfig(root: string, config: ProjectConfig): Promise<
   const path = join(root, "scripts/conf/project.json");
   const content = JSON.stringify(config, null, 2) + "\n";
   await writeFile(path, content);
+}
+
+/**
+ * Resolves the sync direction from args or by prompting the user.
+ *
+ * @private
+ */
+async function resolveDirection(
+  ctx: Parameters<Parameters<typeof lauf>[0]["run"]>[0],
+  cancelled: boolean,
+): Promise<"to-github" | "from-github" | null> {
+  if (ctx.args.direction) {
+    return ctx.args.direction as "to-github" | "from-github";
+  }
+
+  const [promptErr, selected] = await ctx.prompts.select({
+    message: "Select sync direction",
+    options: [
+      { value: "to-github", label: "To GitHub (update GitHub from local config)" },
+      { value: "from-github", label: "From GitHub (update local config from GitHub)" },
+    ],
+  });
+
+  if ((promptErr !== null && promptErr.cancelled) || cancelled) {
+    return null;
+  }
+
+  return selected as "to-github" | "from-github";
+}
+
+/**
+ * Maps a boolean visibility flag to the config string.
+ *
+ * @private
+ */
+function resolveVisibility(isPublic: boolean): "PUBLIC" | "PRIVATE" {
+  if (isPublic) {
+    return "PUBLIC";
+  }
+  return "PRIVATE";
+}
+
+/**
+ * Builds select options for a SINGLE_SELECT field, or returns undefined.
+ *
+ * @private
+ */
+function buildSelectOptions(
+  field: ConfigField,
+): ReadonlyArray<{ name: string; description: string; color: string }> | undefined {
+  if (field.type !== "SINGLE_SELECT" || field.options === undefined) {
+    return undefined;
+  }
+  return field.options.map((o) => ({
+    name: o.name,
+    description: o.description ?? "",
+    color: o.color ?? "GRAY",
+  }));
+}
+
+/**
+ * Formats optional drift details into a parenthesized suffix.
+ *
+ * @private
+ */
+function formatDriftDetails(details: string | undefined): string {
+  if (details === undefined) {
+    return "";
+  }
+  return ` (${details})`;
+}
+
+/**
+ * Extracts the name of the first field from an array, or null if empty.
+ *
+ * @private
+ */
+function extractFirstFieldName(fields: readonly { readonly name: string }[]): string | null {
+  if (fields.length === 0) {
+    return null;
+  }
+  return fields[0].name;
+}
+
+/**
+ * Extracts sortBy configuration from an array of sort-by field entries.
+ *
+ * @private
+ */
+function extractSortBy(
+  sortByFields: readonly {
+    readonly field: { readonly name: string };
+    readonly direction: string;
+  }[],
+): { readonly field: string; readonly direction: string } | null {
+  if (sortByFields.length === 0) {
+    return null;
+  }
+  return { field: sortByFields[0].field.name, direction: sortByFields[0].direction };
 }

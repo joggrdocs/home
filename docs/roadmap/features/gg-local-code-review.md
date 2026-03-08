@@ -4,6 +4,7 @@ issue: 22
 productArea:
   - 🎮 gg-workflow
 ---
+
 # GG Local Code Review
 
 ## Problem
