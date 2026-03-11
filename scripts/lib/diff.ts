@@ -2,6 +2,8 @@
  * Utility for displaying colored diff output in terminal.
  */
 
+import { ANSI } from "./ansi.js";
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -42,10 +44,10 @@ export interface Logger {
  * Standard ANSI color codes for terminal diff output.
  */
 export const DIFF_COLORS: DiffColors = {
-  red: "\x1b[31m",
-  green: "\x1b[32m",
-  strike: "\x1b[9m",
-  reset: "\x1b[0m",
+  red: ANSI.red,
+  green: ANSI.green,
+  strike: ANSI.strike,
+  reset: ANSI.reset,
 };
 
 /**

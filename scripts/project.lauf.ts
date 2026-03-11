@@ -86,7 +86,7 @@ export default lauf({
       }
 
       // Determine sync direction
-      const direction = await resolveDirection(ctx, cancelled);
+      const direction = await resolveDirection(ctx, () => cancelled);
       if (!direction) {
         ctx.logger.warn("Cancelled by user");
         return 1;
@@ -687,7 +687,7 @@ async function writeProjectConfig(root: string, config: ProjectConfig): Promise<
  */
 async function resolveDirection(
   ctx: Parameters<Parameters<typeof lauf>[0]["run"]>[0],
-  cancelled: boolean,
+  isCancelled: () => boolean,
 ): Promise<"to-github" | "from-github" | null> {
   if (ctx.args.direction) {
     return ctx.args.direction as "to-github" | "from-github";
@@ -701,7 +701,7 @@ async function resolveDirection(
     ],
   });
 
-  if ((promptErr !== null && promptErr.cancelled) || cancelled) {
+  if ((promptErr !== null && promptErr.cancelled) || isCancelled()) {
     return null;
   }
 

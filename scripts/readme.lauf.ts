@@ -7,6 +7,7 @@ import { createBackup } from "./lib/backup.js";
 import { FEATURES_DIR, readProjectConfig } from "./lib/config.js";
 import { displayDiff, type DiffChange } from "./lib/diff.js";
 import { displayDryRunWarning } from "./lib/dry-run-warning.js";
+import { extractErrorMessage } from "./lib/errors.js";
 import { extractTitle, parseFrontmatter } from "./lib/frontmatter.js";
 import type { ProjectItem } from "./lib/github-client.js";
 import { createGitHubClient } from "./lib/github-client.js";
@@ -287,7 +288,7 @@ async function readFeatureFiles(
 
     return [null, features];
   } catch (error) {
-    return [new Error(`Failed to read feature files: ${extractMessage(error)}`), null];
+    return [new Error(`Failed to read feature files: ${extractErrorMessage(error)}`), null];
   }
 }
 
@@ -469,7 +470,7 @@ async function readReadme(path: string): Promise<[Error, null] | [null, string]>
     const content = await readFile(path, "utf-8");
     return [null, content];
   } catch (error) {
-    return [new Error(extractMessage(error)), null];
+    return [new Error(extractErrorMessage(error)), null];
   }
 }
 
@@ -483,7 +484,7 @@ async function writeReadme(path: string, content: string): Promise<[Error, null]
     await writeFile(path, content);
     return [null, undefined];
   } catch (error) {
-    return [new Error(extractMessage(error)), null];
+    return [new Error(extractErrorMessage(error)), null];
   }
 }
 
@@ -536,16 +537,4 @@ function formatAssigneesText(assignees: readonly Assignee[]): string {
     return "";
   }
   return ` (${assignees.map((a) => `@${a.login}`).join(", ")})`;
-}
-
-/**
- * Extracts a displayable message from an unknown error value.
- *
- * @private
- */
-function extractMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return "Unknown error";
 }

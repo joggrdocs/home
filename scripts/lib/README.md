@@ -7,8 +7,8 @@ Octokit-style GitHub client for interacting with the GitHub API via the `gh` CLI
 ```typescript
 import { createGitHubClient } from "./github-client.js";
 
-// Create client (GraphQL queries are auto-loaded)
-const [clientError, github] = await createGitHubClient();
+// Create client (GraphQL queries are auto-loaded from packageDir)
+const [clientError, github] = await createGitHubClient({ packageDir: import.meta.dirname });
 if (clientError) {
   console.error("Failed to create GitHub client:", clientError.message);
   process.exit(1);
@@ -133,6 +133,7 @@ const [error, response] = await github.graphql({
 GraphQL queries are stored in `scripts/lib/queries/` and loaded at runtime:
 
 - `get-project.graphql` - Fetch project metadata
+- `list-project-items.graphql` - List project items
 - `list-project-views.graphql` - List project views
 - `update-field-options.graphql` - Update field options
 
@@ -163,7 +164,7 @@ console.log(data.title);
 
 ## Design
 
-- **Factory pattern** - `createGitHubClient(queries)` returns interface
+- **Factory pattern** - `createGitHubClient(ctx)` returns interface
 - **Result types** - No exceptions, errors as values
 - **Object parameters** - Named params for clarity
 - **Full JSDoc** - All functions documented

@@ -29,7 +29,7 @@ describe("computeFieldDiffs", () => {
     ...overrides,
   });
 
-  it("detects fields to create (in config but not in github)", () => {
+  it("should detect fields to create when in config but not in github", () => {
     const config = [makeConfigField({ name: "Priority" })];
     const github: ProjectField[] = [];
     const diff = computeFieldDiffs(config, github);
@@ -39,7 +39,7 @@ describe("computeFieldDiffs", () => {
     expect(diff.toUpdate.length).toBe(0);
   });
 
-  it("detects fields to delete (in github but not in config)", () => {
+  it("should detect fields to delete when in github but not in config", () => {
     const config: ConfigField[] = [];
     const github = [makeGitHubField({ name: "OldField" })];
     const diff = computeFieldDiffs(config, github);
@@ -48,7 +48,7 @@ describe("computeFieldDiffs", () => {
     expect(diff.toCreate.length).toBe(0);
   });
 
-  it("detects fields to update when options differ", () => {
+  it("should detect fields to update when options differ", () => {
     const config = [
       makeConfigField({
         name: "Priority",
@@ -68,7 +68,7 @@ describe("computeFieldDiffs", () => {
     expect(diff.toUpdate[0].config.name).toBe("Priority");
   });
 
-  it("filters out built-in fields from github side", () => {
+  it("should filter out built-in fields from github side", () => {
     const config: ConfigField[] = [];
     const github = [makeGitHubField({ name: "Title" })];
     expect(BUILT_IN_FIELDS.has("Title")).toBe(true);
@@ -76,7 +76,7 @@ describe("computeFieldDiffs", () => {
     expect(diff.toDelete.length).toBe(0);
   });
 
-  it("returns empty arrays when everything is in sync", () => {
+  it("should return empty arrays when everything is in sync", () => {
     const config = [makeConfigField({ name: "Priority", type: "TEXT" })];
     const github = [makeGitHubField({ name: "Priority", type: "TEXT" })];
     const diff = computeFieldDiffs(config, github);
@@ -111,7 +111,7 @@ describe("detectViewDrift", () => {
     ...overrides,
   });
 
-  it("detects views missing from github", () => {
+  it("should detect views missing from github", () => {
     const config = [makeConfigView({ name: "Kanban" })];
     const github: ProjectView[] = [];
     const drift = detectViewDrift(config, github);
@@ -120,7 +120,7 @@ describe("detectViewDrift", () => {
     expect(drift[0].view).toBe("Kanban");
   });
 
-  it("detects views not in config", () => {
+  it("should detect views not in config", () => {
     const config: ConfigView[] = [];
     const github = [makeGitHubView({ name: "ExtraView" })];
     const drift = detectViewDrift(config, github);
@@ -129,7 +129,7 @@ describe("detectViewDrift", () => {
     expect(drift[0].view).toBe("ExtraView");
   });
 
-  it("detects mismatched layout", () => {
+  it("should detect mismatched layout", () => {
     const config = [makeConfigView({ name: "Board", layout: "TABLE" })];
     const github = [makeGitHubView({ name: "Board", layout: "BOARD" })];
     const drift = detectViewDrift(config, github);
@@ -138,7 +138,7 @@ describe("detectViewDrift", () => {
     expect(drift[0].details).toContain("layout");
   });
 
-  it("detects mismatched groupBy", () => {
+  it("should detect mismatched groupBy", () => {
     const config = [makeConfigView({ name: "Board", groupBy: "Priority" })];
     const github = [makeGitHubView({ name: "Board", groupByFields: [{ name: "Status" }] })];
     const drift = detectViewDrift(config, github);
@@ -147,7 +147,7 @@ describe("detectViewDrift", () => {
     expect(drift[0].details).toContain("groupBy");
   });
 
-  it("detects mismatched sortBy", () => {
+  it("should detect mismatched sortBy", () => {
     const config = [
       makeConfigView({
         name: "Board",
@@ -161,7 +161,7 @@ describe("detectViewDrift", () => {
     expect(drift[0].details).toContain("sortBy");
   });
 
-  it("returns empty array when views are in sync", () => {
+  it("should return empty array when views are in sync", () => {
     const config = [makeConfigView()];
     const github = [makeGitHubView()];
     const drift = detectViewDrift(config, github);
@@ -174,7 +174,7 @@ describe("detectViewDrift", () => {
 // ---------------------------------------------------------------------------
 
 describe("convertGitHubFieldToConfig", () => {
-  it("converts a custom field to ConfigField", () => {
+  it("should convert a custom field to ConfigField", () => {
     const field: ProjectField = {
       id: "f1",
       name: "Priority",
@@ -186,13 +186,16 @@ describe("convertGitHubFieldToConfig", () => {
     };
     const result = convertGitHubFieldToConfig(field);
     expect(result).not.toBeNull();
-    expect(result?.name).toBe("Priority");
-    expect(result?.type).toBe("SINGLE_SELECT");
-    expect(result?.options?.length).toBe(2);
-    expect(result?.options?.[0].name).toBe("High");
+    const typedResult = result as ConfigField;
+    expect(typedResult.name).toBe("Priority");
+    expect(typedResult.type).toBe("SINGLE_SELECT");
+    expect(typedResult.options).not.toBeUndefined();
+    const typedOptions = typedResult.options as ReadonlyArray<{ readonly name: string }>;
+    expect(typedOptions.length).toBe(2);
+    expect(typedOptions[0].name).toBe("High");
   });
 
-  it("returns null for a built-in field", () => {
+  it("should return null for a built-in field", () => {
     const field: ProjectField = {
       id: "f2",
       name: "Title",
@@ -208,7 +211,7 @@ describe("convertGitHubFieldToConfig", () => {
 // ---------------------------------------------------------------------------
 
 describe("convertGitHubViewToConfig", () => {
-  it("converts a full view with sort, group, and filter", () => {
+  it("should convert a full view with sort, group, and filter", () => {
     const view: ProjectView = {
       id: "v1",
       name: "Backlog",
@@ -227,7 +230,7 @@ describe("convertGitHubViewToConfig", () => {
     expect(result.filter).toBe("status:open");
   });
 
-  it("handles view with no sort or group", () => {
+  it("should handle view with no sort or group", () => {
     const view: ProjectView = {
       id: "v2",
       name: "Simple",
@@ -250,12 +253,12 @@ describe("convertGitHubViewToConfig", () => {
 // ---------------------------------------------------------------------------
 
 describe("formatSortField", () => {
-  it("formats a sort object as a string", () => {
+  it("should format a sort object as a string", () => {
     const result = formatSortField({ field: "Priority", direction: "ASC" });
     expect(result).toBe("Priority ASC");
   });
 
-  it('returns "none" for null', () => {
+  it('should return "none" for null', () => {
     const result = formatSortField(null);
     expect(result).toBe("none");
   });

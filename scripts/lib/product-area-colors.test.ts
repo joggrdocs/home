@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 
+import type { ProductAreaConfig } from "./product-area-colors.js";
 import { buildProductAreaBadge, getProductAreaConfig } from "./product-area-colors.js";
 
 describe("getProductAreaConfig", () => {
@@ -7,8 +8,9 @@ describe("getProductAreaConfig", () => {
     const result = getProductAreaConfig("\uD83C\uDFD7\uFE0F platform");
 
     expect(result).not.toBeUndefined();
-    expect(result!.label).toBe("Platform");
-    expect(result!.color).toBe("cf222e");
+    const typedResult = result as ProductAreaConfig;
+    expect(typedResult.label).toBe("Platform");
+    expect(typedResult.color).toBe("cf222e");
   });
 
   it("should return undefined for an unknown product area", () => {

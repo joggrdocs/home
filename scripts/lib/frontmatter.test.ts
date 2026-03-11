@@ -8,8 +8,12 @@ describe("parseFrontmatter", () => {
     const result = parseFrontmatter<{ title: string; status: string }>(raw);
 
     expect(result).not.toBeNull();
-    expect(result!.frontmatter).toEqual({ title: "Hello", status: "draft" });
-    expect(result!.content).toBe("# Hello World");
+    const typedResult = result as {
+      frontmatter: { title: string; status: string };
+      content: string;
+    };
+    expect(typedResult.frontmatter).toEqual({ title: "Hello", status: "draft" });
+    expect(typedResult.content).toBe("# Hello World");
   });
 
   it("should return null when no frontmatter is present", () => {
@@ -19,13 +23,11 @@ describe("parseFrontmatter", () => {
     expect(result).toBeNull();
   });
 
-  it("should handle an empty YAML block", () => {
+  it("should return null for an empty YAML block", () => {
     const raw = "---\n\n---\n\nBody text";
     const result = parseFrontmatter(raw);
 
-    expect(result).not.toBeNull();
-    expect(result!.frontmatter).toBeNull();
-    expect(result!.content).toBe("Body text");
+    expect(result).toBeNull();
   });
 
   it("should handle multi-line content after frontmatter", () => {
@@ -33,8 +35,9 @@ describe("parseFrontmatter", () => {
     const result = parseFrontmatter<{ key: string }>(raw);
 
     expect(result).not.toBeNull();
-    expect(result!.frontmatter).toEqual({ key: "value" });
-    expect(result!.content).toBe("Line one\n\nLine two\n\nLine three");
+    const typedResult = result as { frontmatter: { key: string }; content: string };
+    expect(typedResult.frontmatter).toEqual({ key: "value" });
+    expect(typedResult.content).toBe("Line one\n\nLine two\n\nLine three");
   });
 });
 
@@ -45,8 +48,12 @@ describe("updateFrontmatter", () => {
 
     const parsed = parseFrontmatter<{ title: string; status: string }>(result);
     expect(parsed).not.toBeNull();
-    expect(parsed!.frontmatter.title).toBe("New");
-    expect(parsed!.frontmatter.status).toBe("draft");
+    const typedParsed = parsed as {
+      frontmatter: { title: string; status: string };
+      content: string;
+    };
+    expect(typedParsed.frontmatter.title).toBe("New");
+    expect(typedParsed.frontmatter.status).toBe("draft");
   });
 
   it("should add a new field to frontmatter", () => {
@@ -55,8 +62,12 @@ describe("updateFrontmatter", () => {
 
     const parsed = parseFrontmatter<{ title: string; priority: string }>(result);
     expect(parsed).not.toBeNull();
-    expect(parsed!.frontmatter.priority).toBe("high");
-    expect(parsed!.frontmatter.title).toBe("Hello");
+    const typedParsed = parsed as {
+      frontmatter: { title: string; priority: string };
+      content: string;
+    };
+    expect(typedParsed.frontmatter.priority).toBe("high");
+    expect(typedParsed.frontmatter.title).toBe("Hello");
   });
 
   it("should return unchanged string when no frontmatter exists", () => {

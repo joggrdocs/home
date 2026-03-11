@@ -36,7 +36,7 @@ Use the correct template based on document type. See [Writing Standards](../../.
 ## Formatting
 
 - Code examples: minimal snippets showing the pattern, not full files
-- Specify language on all fenced code blocks (`ts, `bash, etc.)
+- Specify language on all fenced code blocks (`ts`, `bash`, etc.)
 - Use tables for structured comparisons (Correct vs Incorrect, options, conventions)
 - Prefer relative links for internal docs, full URLs for external
 

@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
+import type { ProjectConfig } from "./config.js";
 import { readProjectConfig } from "./config.js";
 
 vi.mock("node:fs/promises", () => ({
@@ -35,8 +36,9 @@ describe("readProjectConfig", () => {
 
     expect(error).toBeNull();
     expect(config).not.toBeNull();
-    expect(config!.project.owner).toBe("test-owner");
-    expect(config!.project.title).toBe("Test Project");
+    const typedConfig = config as ProjectConfig;
+    expect(typedConfig.project.owner).toBe("test-owner");
+    expect(typedConfig.project.title).toBe("Test Project");
   });
 
   it("should return [Error, null] for malformed JSON", async () => {
@@ -54,7 +56,9 @@ describe("readProjectConfig", () => {
     const [error, config] = await readProjectConfig("/project");
 
     expect(error).toBeInstanceOf(Error);
-    expect(error!.message).toContain("ENOENT");
+    expect(error).not.toBeNull();
+    const typedError = error as Error;
+    expect(typedError.message).toContain("ENOENT");
     expect(config).toBeNull();
   });
 });

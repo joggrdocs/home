@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 
 import { vi, describe, it, expect, beforeEach } from "vitest";
 
+import type { Queries } from "./query-loader.js";
 import { loadQueries } from "./query-loader.js";
 
 vi.mock("node:fs/promises", () => ({
@@ -20,10 +21,11 @@ describe("loadQueries", () => {
 
     expect(error).toBeNull();
     expect(queries).not.toBeNull();
-    expect(queries!.getProject).toBe("query { field }");
-    expect(queries!.listProjectViews).toBe("query { field }");
-    expect(queries!.listProjectItems).toBe("query { field }");
-    expect(queries!.updateFieldOptions).toBe("query { field }");
+    const typedQueries = queries as Queries;
+    expect(typedQueries.getProject).toBe("query { field }");
+    expect(typedQueries.listProjectViews).toBe("query { field }");
+    expect(typedQueries.listProjectItems).toBe("query { field }");
+    expect(typedQueries.updateFieldOptions).toBe("query { field }");
   });
 
   it("should return [Error, null] when a file is missing", async () => {
@@ -32,7 +34,9 @@ describe("loadQueries", () => {
     const [error, queries] = await loadQueries({ packageDir: "/project" });
 
     expect(error).toBeInstanceOf(Error);
-    expect(error!.message).toContain("ENOENT");
+    expect(error).not.toBeNull();
+    const typedError = error as Error;
+    expect(typedError.message).toContain("ENOENT");
     expect(queries).toBeNull();
   });
 });

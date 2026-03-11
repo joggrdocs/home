@@ -91,6 +91,7 @@ The status badge colors follow a darkwave/synthwave palette:
 | ----------- | --------------- | ---------------------------------------------------------------------- |
 | Idea        | Electric Purple | `![Idea](https://img.shields.io/badge/Idea-%238a04ed)`                 |
 | Planned     | Imperial Blue   | `![Planned](https://img.shields.io/badge/Planned-%230C1565)`           |
+| Upcoming    | Imperial Blue   | `![Upcoming](https://img.shields.io/badge/Upcoming-%230C1565)`         |
 | In progress | Burnt Orange    | `![In progress](https://img.shields.io/badge/In%20progress-%23e85d04)` |
 | Released    | Dark Teal       | `![Released](https://img.shields.io/badge/Released-%2300a67e)`         |
 

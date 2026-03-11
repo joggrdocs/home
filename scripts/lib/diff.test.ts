@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 
+import type { DiffChange } from "./diff.js";
 import { compareStrings } from "./diff.js";
 
 describe("compareStrings", () => {
@@ -13,14 +14,16 @@ describe("compareStrings", () => {
     const result = compareStrings("title", "Old Title", "New Title");
 
     expect(result).not.toBeNull();
-    expect(result!.type).toBe("modify");
-    expect(result!.label).toBe("title");
+    const typedResult = result as DiffChange;
+    expect(typedResult.type).toBe("modify");
+    expect(typedResult.label).toBe("title");
   });
 
   it("should format detail as quoted old to new with arrow", () => {
     const result = compareStrings("name", "Alice", "Bob");
 
     expect(result).not.toBeNull();
-    expect(result!.detail).toBe('"Alice" \u2192 "Bob"');
+    const typedResult = result as DiffChange;
+    expect(typedResult.detail).toBe('"Alice" \u2192 "Bob"');
   });
 });

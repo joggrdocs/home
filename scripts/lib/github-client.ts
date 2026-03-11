@@ -462,7 +462,7 @@ export async function createGitHubClient(ctx: GitHubClientContext): Promise<Resu
          * Creates a new field in a project.
          */
         create: async ({ owner, number, name, dataType, singleSelectOptions }) => {
-          const args = [
+          const baseArgs = [
             "project",
             "field-create",
             String(number),
@@ -473,14 +473,13 @@ export async function createGitHubClient(ctx: GitHubClientContext): Promise<Resu
             "--data-type",
             dataType,
           ];
-
-          if (dataType === "SINGLE_SELECT" && singleSelectOptions) {
-            const optionFlags = singleSelectOptions.flatMap((o) => [
-              "--single-select-options",
-              o.name,
-            ]);
-            args.push(...optionFlags);
-          }
+          const args =
+            dataType === "SINGLE_SELECT" && singleSelectOptions
+              ? [
+                  ...baseArgs,
+                  ...singleSelectOptions.flatMap((o) => ["--single-select-options", o.name]),
+                ]
+              : baseArgs;
 
           const [execError] = await gh(args);
 
@@ -594,12 +593,12 @@ export async function createGitHubClient(ctx: GitHubClientContext): Promise<Resu
 
             const items = data.data.organization.projectV2.items.nodes.map((item) => {
               const statusField = item.fieldValues.nodes.find(
-                (fv) => fv.field?.name === "Status" && fv.name,
+                (fv) => fv.field !== undefined && fv.field.name === "Status" && fv.name,
               );
-              const status = statusField?.name ?? undefined;
+              const status = extractFieldName(statusField);
 
               const productAreaFields = item.fieldValues.nodes.filter(
-                (fv) => fv.field?.name === "Product Area",
+                (fv) => fv.field !== undefined && fv.field.name === "Product Area",
               );
 
               const productAreaNames = productAreaFields
@@ -851,13 +850,29 @@ function buildOptionIdToNameMap(
       }
     | undefined,
 ): Map<string, string> {
-  if (productAreaField?.options) {
+  if (productAreaField !== undefined && productAreaField.options) {
     return new Map(productAreaField.options.map((o) => [o.id, o.name]));
   }
-  if (productAreaField?.configuration?.iterations) {
+  if (
+    productAreaField !== undefined &&
+    productAreaField.configuration &&
+    productAreaField.configuration.iterations
+  ) {
     return new Map(productAreaField.configuration.iterations.map((i) => [i.id, i.title]));
   }
   return new Map();
+}
+
+/**
+ * Extracts the name from an optional field value node.
+ *
+ * @private
+ */
+function extractFieldName(field: { name?: string } | undefined): string | undefined {
+  if (field === undefined) {
+    return undefined;
+  }
+  return field.name;
 }
 
 /**

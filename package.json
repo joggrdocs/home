@@ -12,14 +12,12 @@
     "format:check": "oxfmt --check",
     "test": "vitest run --config scripts/vitest.config.ts"
   },
-  "dependencies": {
-    "diff": "^8.0.3"
-  },
   "devDependencies": {
     "@commitlint/cli": "^20.0.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@types/diff": "^8.0.0",
     "@types/node": "^24.11.0",
+    "diff": "^8.0.3",
     "es-toolkit": "^1.45.1",
     "laufen": "^1.1.0",
     "lefthook": "^2.1.0",

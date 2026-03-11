@@ -5,6 +5,8 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { extractErrorMessage } from "./errors.js";
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -92,20 +94,4 @@ export async function readProjectConfig(
     const message = extractErrorMessage(error);
     return [new Error(`Failed to read ${CONFIG_PATH}: ${message}`), null];
   }
-}
-
-// ---------------------------------------------------------------------------
-// Private
-// ---------------------------------------------------------------------------
-
-/**
- * Extracts an error message from an unknown error value.
- *
- * @private
- */
-function extractErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return "Unknown error";
 }

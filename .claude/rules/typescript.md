@@ -69,5 +69,5 @@ Every source file follows this order:
 
 ## Formatting (OXFmt)
 
-- 100-char line width, 2-space indent, semicolons, single quotes, trailing commas
+- 100-char line width, 2-space indent, semicolons, double quotes, trailing commas
 - Import sorting: builtin > external > internal > parent/sibling/index

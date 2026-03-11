@@ -18,34 +18,40 @@ describe("replaceTableContent", () => {
   const START = "<!-- target:roadmap-table:start -->";
   const END = "<!-- target:roadmap-table:end -->";
 
-  it("replaces content between markers", () => {
+  it("should replace content between markers", () => {
     const readme = `before\n${START}\nold table\n${END}\nafter`;
     const [error, result] = replaceTableContent(readme, "new table");
     expect(error).toBeNull();
     expect(result).toBe(`before\n${START}\nnew table\n${END}\nafter`);
   });
 
-  it("returns error when start marker is missing", () => {
+  it("should return error when start marker is missing", () => {
     const readme = `before\n${END}\nafter`;
     const [error, result] = replaceTableContent(readme, "new table");
     expect(error).toBeInstanceOf(Error);
-    expect(error?.message).toContain("Missing");
+    expect(error).not.toBeNull();
+    const typedError = error as Error;
+    expect(typedError.message).toContain("Missing");
     expect(result).toBeNull();
   });
 
-  it("returns error when end marker is missing", () => {
+  it("should return error when end marker is missing", () => {
     const readme = `before\n${START}\nafter`;
     const [error, result] = replaceTableContent(readme, "new table");
     expect(error).toBeInstanceOf(Error);
-    expect(error?.message).toContain("Missing");
+    expect(error).not.toBeNull();
+    const typedError = error as Error;
+    expect(typedError.message).toContain("Missing");
     expect(result).toBeNull();
   });
 
-  it("returns error when markers are reversed", () => {
+  it("should return error when markers are reversed", () => {
     const readme = `before\n${END}\nmiddle\n${START}\nafter`;
     const [error, result] = replaceTableContent(readme, "new table");
     expect(error).toBeInstanceOf(Error);
-    expect(error?.message).toContain("after end marker");
+    expect(error).not.toBeNull();
+    const typedError = error as Error;
+    expect(typedError.message).toContain("after end marker");
     expect(result).toBeNull();
   });
 });
@@ -64,7 +70,7 @@ describe("buildMarkdownTable", () => {
     ...overrides,
   });
 
-  it("builds a table with a single item", () => {
+  it("should build a table with a single item", () => {
     const result = buildMarkdownTable([makeItem()], "org", "repo", 42, "3");
     const lines = result.split("\n");
     expect(lines[0]).toBe("| Feature | Status | Assignee |");
@@ -73,7 +79,7 @@ describe("buildMarkdownTable", () => {
     expect(lines[2]).toContain("Feature A");
   });
 
-  it("builds a table with multiple items", () => {
+  it("should build a table with multiple items", () => {
     const items = [
       makeItem({ title: "Feature A", issueNumber: 1 }),
       makeItem({ title: "Feature B", issueNumber: 2 }),
@@ -85,7 +91,7 @@ describe("buildMarkdownTable", () => {
     expect(lines[3]).toContain("Feature B");
   });
 
-  it("builds a table with no items (header only)", () => {
+  it("should build a table with no items as header only", () => {
     const result = buildMarkdownTable([], "org", "repo", 42, "3");
     const lines = result.split("\n");
     expect(lines.length).toBe(2);
@@ -99,7 +105,7 @@ describe("buildMarkdownTable", () => {
 // ---------------------------------------------------------------------------
 
 describe("formatTableRow", () => {
-  it("produces correct URL encoding and badge format", () => {
+  it("should produce correct URL encoding and badge format", () => {
     const item: RoadmapItem = {
       title: "My Feature",
       status: "In progress",
@@ -129,19 +135,19 @@ describe("formatAssignee", () => {
     profileUrl: `https://github.com/${login}`,
   });
 
-  it("returns badge for exactly one assignee", () => {
+  it("should return badge for exactly one assignee", () => {
     const result = formatAssignee([makeAssignee("alice")]);
     expect(result).toContain("@alice");
     expect(result).toContain("img.shields.io/badge/");
     expect(result).toContain("https://github.com/alice");
   });
 
-  it("returns empty string for zero assignees", () => {
+  it("should return empty string for zero assignees", () => {
     const result = formatAssignee([]);
     expect(result).toBe("");
   });
 
-  it("returns empty string for multiple assignees", () => {
+  it("should return empty string for multiple assignees", () => {
     const result = formatAssignee([makeAssignee("alice"), makeAssignee("bob")]);
     expect(result).toBe("");
   });
@@ -152,37 +158,37 @@ describe("formatAssignee", () => {
 // ---------------------------------------------------------------------------
 
 describe("getStatusBadge", () => {
-  it('returns correct badge for "Idea"', () => {
+  it('should return correct badge for "Idea"', () => {
     const badge = getStatusBadge("Idea");
     expect(badge.label).toBe("Idea");
     expect(badge.color).toBe("8a04ed");
   });
 
-  it('returns correct badge for "Upcoming"', () => {
+  it('should return correct badge for "Upcoming"', () => {
     const badge = getStatusBadge("Upcoming");
     expect(badge.label).toBe("Upcoming");
     expect(badge.color).toBe("0C1565");
   });
 
-  it('returns correct badge for "Planned"', () => {
+  it('should return correct badge for "Planned"', () => {
     const badge = getStatusBadge("Planned");
     expect(badge.label).toBe("Planned");
     expect(badge.color).toBe("0C1565");
   });
 
-  it('returns correct badge for "In progress"', () => {
+  it('should return correct badge for "In progress"', () => {
     const badge = getStatusBadge("In progress");
     expect(badge.label).toBe("In Progress");
     expect(badge.color).toBe("e85d04");
   });
 
-  it('returns correct badge for "Released"', () => {
+  it('should return correct badge for "Released"', () => {
     const badge = getStatusBadge("Released");
     expect(badge.label).toBe("Released");
     expect(badge.color).toBe("00a67e");
   });
 
-  it("returns fallback badge for unknown status", () => {
+  it("should return fallback badge for unknown status", () => {
     const badge = getStatusBadge("SomethingElse");
     expect(badge.label).toBe("SomethingElse");
     expect(badge.color).toBe("5a347b");
@@ -200,7 +206,7 @@ describe("buildDiffChanges", () => {
     profileUrl: `https://github.com/${login}`,
   });
 
-  it("includes assignees in detail when present", () => {
+  it("should include assignees in detail when present", () => {
     const items: readonly RoadmapItem[] = [
       {
         title: "Feature A",
@@ -217,7 +223,7 @@ describe("buildDiffChanges", () => {
     expect(changes[0].detail).toContain("@alice");
   });
 
-  it("does not include assignees in detail when empty", () => {
+  it("should not include assignees in detail when empty", () => {
     const items: readonly RoadmapItem[] = [
       {
         title: "Feature B",

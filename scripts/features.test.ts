@@ -7,17 +7,17 @@ import { buildIssueBody, MAX_BODY_SECTIONS } from "./features.lauf.js";
 // ---------------------------------------------------------------------------
 
 describe("buildIssueBody", () => {
-  it("returns null when there is no H1 title", () => {
+  it("should return null when there is no H1 title", () => {
     const result = buildIssueBody("## Section\nSome text");
     expect(result).toBeNull();
   });
 
-  it("returns null for empty content", () => {
+  it("should return null for empty content", () => {
     const result = buildIssueBody("");
     expect(result).toBeNull();
   });
 
-  it("extracts title and sections correctly", () => {
+  it("should extract title and sections correctly", () => {
     const content = [
       "# My Feature",
       "",
@@ -30,15 +30,16 @@ describe("buildIssueBody", () => {
 
     const result = buildIssueBody(content);
     expect(result).not.toBeNull();
-    expect(result?.title).toBe("My Feature");
-    expect(result?.body).toContain("# My Feature");
-    expect(result?.body).toContain("## Overview");
-    expect(result?.body).toContain("This is the overview.");
-    expect(result?.body).toContain("## Details");
-    expect(result?.body).toContain("Some details here.");
+    const typedResult = result as { title: string; body: string };
+    expect(typedResult.title).toBe("My Feature");
+    expect(typedResult.body).toContain("# My Feature");
+    expect(typedResult.body).toContain("## Overview");
+    expect(typedResult.body).toContain("This is the overview.");
+    expect(typedResult.body).toContain("## Details");
+    expect(typedResult.body).toContain("Some details here.");
   });
 
-  it("respects MAX_BODY_SECTIONS limit", () => {
+  it("should respect MAX_BODY_SECTIONS limit", () => {
     expect(MAX_BODY_SECTIONS).toBe(3);
 
     const content = [
@@ -59,19 +60,21 @@ describe("buildIssueBody", () => {
 
     const result = buildIssueBody(content);
     expect(result).not.toBeNull();
-    expect(result?.body).toContain("## Section 1");
-    expect(result?.body).toContain("## Section 2");
-    expect(result?.body).toContain("## Section 3");
-    expect(result?.body).not.toContain("## Section 4");
-    expect(result?.body).not.toContain("Content 4");
+    const typedResult = result as { title: string; body: string };
+    expect(typedResult.body).toContain("## Section 1");
+    expect(typedResult.body).toContain("## Section 2");
+    expect(typedResult.body).toContain("## Section 3");
+    expect(typedResult.body).not.toContain("## Section 4");
+    expect(typedResult.body).not.toContain("Content 4");
   });
 
-  it("trims trailing whitespace in sections", () => {
+  it("should trim trailing whitespace in sections", () => {
     const content = ["# Feature", "", "## Overview", "Some text", "", "", ""].join("\n");
 
     const result = buildIssueBody(content);
     expect(result).not.toBeNull();
-    expect(result?.body).not.toMatch(/\n\n\n$/);
-    expect(result?.body).toMatch(/\n$/);
+    const typedResult = result as { title: string; body: string };
+    expect(typedResult.body).not.toMatch(/\n\n\n$/);
+    expect(typedResult.body).toMatch(/\n$/);
   });
 });

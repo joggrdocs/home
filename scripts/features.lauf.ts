@@ -375,15 +375,15 @@ export default lauf({
           // eslint-disable-next-line no-await-in-loop
           await writeFile(change.filepath, updatedRaw);
 
-          const changes_list: string[] = [];
+          const changesList: string[] = [];
           if (change.statusChanged) {
-            changes_list.push(`status → ${change.toStatus}`);
+            changesList.push(`status → ${change.toStatus}`);
           }
           if (change.contentChanged) {
-            changes_list.push("content");
+            changesList.push("content");
           }
 
-          ctx.logger.success(`Updated ${change.filename} [${changes_list.join(", ")}]`);
+          ctx.logger.success(`Updated ${change.filename} [${changesList.join(", ")}]`);
           updated++;
         }
 

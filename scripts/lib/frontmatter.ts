@@ -34,7 +34,12 @@ export function parseFrontmatter<T extends object>(
     return null;
   }
 
-  const frontmatter = parseYaml(match[1]) as T;
+  const parsed = parseYaml(match[1]);
+  if (!parsed || typeof parsed !== "object") {
+    return null;
+  }
+
+  const frontmatter = parsed as T;
   const content = raw.slice(match[0].length).replace(/^\n+/, "");
 
   return { frontmatter, content };
