@@ -25,7 +25,7 @@ Functions for runtime type checking. Prefer these over manual `typeof` chains.
 #### Correct
 
 ```ts
-import { isNil, isPlainObject, isString } from 'es-toolkit'
+import { isNil, isPlainObject, isString } from "es-toolkit";
 
 // Filter out nil values
 if (!isNil(value)) {
@@ -57,16 +57,16 @@ Functions for picking, omitting, and transforming object properties without muta
 #### Correct
 
 ```ts
-import { pick, omit, omitBy, isNil } from 'es-toolkit'
+import { pick, omit, omitBy, isNil } from "es-toolkit";
 
 // Select specific fields for display
-const summary = pick(config, ['name', 'root', 'scripts'])
+const summary = pick(config, ["name", "root", "scripts"]);
 
 // Remove internal fields before serializing
-const safeConfig = omit(config, ['_resolved', '_path'])
+const safeConfig = omit(config, ["_resolved", "_path"]);
 
 // Remove nil values before writing config
-const cleanConfig = omitBy(rawConfig, isNil)
+const cleanConfig = omitBy(rawConfig, isNil);
 ```
 
 ### Use Collection Utilities for Arrays
@@ -89,22 +89,22 @@ Functions for grouping, deduplicating, and batching arrays.
 #### Correct
 
 ```ts
-import { groupBy, keyBy, chunk, uniqBy } from 'es-toolkit'
+import { groupBy, keyBy, chunk, uniqBy } from "es-toolkit";
 
 // Group scripts by workspace
-const scriptsByWorkspace = groupBy(scripts, 'workspace')
+const scriptsByWorkspace = groupBy(scripts, "workspace");
 // { root: [...], packages/core: [...] }
 
 // Create name lookup
-const scriptsByName = keyBy(scripts, 'name')
+const scriptsByName = keyBy(scripts, "name");
 // { build: script1, lint: script2 }
 
 // Process workspaces in batches
-const batches = chunk(workspaces, 10)
-await batches.reduce((chain, batch) => chain.then(() => processBatch(batch)), Promise.resolve())
+const batches = chunk(workspaces, 10);
+await batches.reduce((chain, batch) => chain.then(() => processBatch(batch)), Promise.resolve());
 
 // Remove duplicate script names
-const uniqueScripts = uniqBy(scripts, 'name')
+const uniqueScripts = uniqBy(scripts, "name");
 ```
 
 ### Use Function Utilities for Scheduling and Caching
@@ -123,22 +123,22 @@ Functions for controlling execution timing and caching results.
 #### Correct
 
 ```ts
-import { debounce, throttle, memoize } from 'es-toolkit'
+import { debounce, throttle, memoize } from "es-toolkit";
 
 // Debounce file watcher callback to avoid redundant rebuilds
 const onFileChange = debounce((path: string) => {
-  rebuildWorkspace(path)
-}, 300)
+  rebuildWorkspace(path);
+}, 300);
 
 // Throttle log output to at most once per second
 const logProgress = throttle((message: string) => {
-  process.stdout.write(`\r${message}`)
-}, 1000)
+  process.stdout.write(`\r${message}`);
+}, 1000);
 
 // Cache expensive config resolution
 const resolveConfig = memoize((root: string) => {
-  return loadAndMergeConfig(root)
-})
+  return loadAndMergeConfig(root);
+});
 ```
 
 ### Use String Utilities for Case Conversion
@@ -156,15 +156,15 @@ Functions for converting between naming conventions.
 #### Correct
 
 ```ts
-import { camelCase, kebabCase } from 'es-toolkit'
+import { camelCase, kebabCase } from "es-toolkit";
 
 // Convert config keys from snake_case
-const configKey = 'script_timeout'
-const jsKey = camelCase(configKey) // 'scriptTimeout'
+const configKey = "script_timeout";
+const jsKey = camelCase(configKey); // 'scriptTimeout'
 
 // Convert to kebab-case for file names
-const moduleName = 'ConfigLoader'
-const fileName = kebabCase(moduleName) // 'config-loader'
+const moduleName = "ConfigLoader";
+const fileName = kebabCase(moduleName); // 'config-loader'
 ```
 
 ### Avoid es-toolkit for Trivial Operations
@@ -180,14 +180,14 @@ if (x != null) {
 }
 
 // Complex grouping - use es-toolkit
-const grouped = groupBy(scripts, 'workspace')
-const batches = chunk(workspaces, 100)
+const grouped = groupBy(scripts, "workspace");
+const batches = chunk(workspaces, 100);
 ```
 
 #### Incorrect
 
 ```ts
-import { isNil } from 'es-toolkit'
+import { isNil } from "es-toolkit";
 
 // Overkill for a simple null check
 if (!isNil(x)) {

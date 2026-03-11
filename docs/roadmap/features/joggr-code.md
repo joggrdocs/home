@@ -4,6 +4,7 @@ issue: 28
 productArea:
   - 🏗️ platform
 ---
+
 # The Joggr Coding Agent
 
 ## Problem

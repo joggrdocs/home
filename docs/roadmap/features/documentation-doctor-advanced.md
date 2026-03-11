@@ -4,6 +4,7 @@ issue: 17
 productArea:
   - 📚 documentation
 ---
+
 # Detect Missing Architecture Documentation
 
 ## Problem

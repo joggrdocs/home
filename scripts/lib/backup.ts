@@ -1,6 +1,7 @@
-import { copyFile, mkdir, readdir } from "node:fs/promises";
+import { copyFile, mkdir, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { extractErrorMessage } from "./errors.js";
 import type { GitHubClient } from "./github-client.js";
 
 // ---------------------------------------------------------------------------
@@ -138,7 +139,7 @@ export function createBackup(ctx: BackupContext): Backup {
           await copyFile(params.sourcePath, fullBackupPath);
           return [null, fullBackupPath];
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Unknown error";
+          const message = extractErrorMessage(error);
           return [
             {
               type: "fs_error",
@@ -169,20 +170,16 @@ export function createBackup(ctx: BackupContext): Backup {
 
         try {
           const files = await readdir(params.sourcePath);
-          const filtered = params.fileExtension
-            ? files.filter((f) => f.endsWith(params.fileExtension))
-            : files;
+          const ext = params.fileExtension;
+          const filtered = ext ? files.filter((f) => f.endsWith(ext)) : files;
 
-          for (const file of filtered) {
-            const srcPath = join(params.sourcePath, file);
-            const dstPath = join(backupPath, file);
-            // eslint-disable-next-line no-await-in-loop
-            await copyFile(srcPath, dstPath);
-          }
+          await Promise.all(
+            filtered.map((file) => copyFile(join(params.sourcePath, file), join(backupPath, file))),
+          );
 
           return [null, backupPath];
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Unknown error";
+          const message = extractErrorMessage(error);
           return [
             {
               type: "fs_error",
@@ -237,11 +234,10 @@ export function createBackup(ctx: BackupContext): Backup {
         };
 
         try {
-          const { writeFile } = await import("node:fs/promises");
           await writeFile(backupPath, JSON.stringify(backupData, null, 2));
           return [null, backupPath];
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Unknown error";
+          const message = extractErrorMessage(error);
           return [
             {
               type: "fs_error",
@@ -293,11 +289,10 @@ export function createBackup(ctx: BackupContext): Backup {
         };
 
         try {
-          const { writeFile } = await import("node:fs/promises");
           await writeFile(backupPath, JSON.stringify(backupData, null, 2));
           return [null, backupPath];
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Unknown error";
+          const message = extractErrorMessage(error);
           return [
             {
               type: "fs_error",
@@ -389,11 +384,10 @@ export function createBackup(ctx: BackupContext): Backup {
         };
 
         try {
-          const { writeFile } = await import("node:fs/promises");
           await writeFile(backupPath, JSON.stringify(backupData, null, 2));
           return [null, backupPath];
         } catch (error) {
-          const message = error instanceof Error ? error.message : "Unknown error";
+          const message = extractErrorMessage(error);
           return [
             {
               type: "fs_error",
@@ -433,11 +427,10 @@ async function ensureBackupDir(path: string): Promise<BackupResult<void>> {
     await mkdir(path, { recursive: true });
     return [null, undefined];
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
     return [
       {
         type: "fs_error",
-        message: `Failed to create backup directory: ${message}`,
+        message: `Failed to create backup directory: ${extractErrorMessage(error)}`,
         path,
       },
       null,

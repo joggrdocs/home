@@ -325,7 +325,10 @@ export async function createGitHubClient(ctx: GitHubClientContext): Promise<Resu
           ];
         }
 
-        return [null, { number: parseInt(match[1], 10), title, body, url: issueUrl }];
+        return [
+          null,
+          { number: parseInt(match[1], 10), title, body, url: issueUrl, assignees: [] },
+        ];
       },
 
       /**
@@ -377,7 +380,10 @@ export async function createGitHubClient(ctx: GitHubClientContext): Promise<Resu
             return [null, null];
           }
 
-          return [null, { number: exact.number, title: exact.title, body: "", url: exact.url }];
+          return [
+            null,
+            { number: exact.number, title: exact.title, body: "", url: exact.url, assignees: [] },
+          ];
         } catch {
           return [{ type: "parse_error", message: "Failed to parse issues JSON" }, null];
         }
@@ -456,7 +462,7 @@ export async function createGitHubClient(ctx: GitHubClientContext): Promise<Resu
          * Creates a new field in a project.
          */
         create: async ({ owner, number, name, dataType, singleSelectOptions }) => {
-          const args = [
+          const baseArgs = [
             "project",
             "field-create",
             String(number),
@@ -467,14 +473,13 @@ export async function createGitHubClient(ctx: GitHubClientContext): Promise<Resu
             "--data-type",
             dataType,
           ];
-
-          if (dataType === "SINGLE_SELECT" && singleSelectOptions) {
-            const optionFlags = singleSelectOptions.flatMap((o) => [
-              "--single-select-options",
-              o.name,
-            ]);
-            args.push(...optionFlags);
-          }
+          const args =
+            dataType === "SINGLE_SELECT" && singleSelectOptions
+              ? [
+                  ...baseArgs,
+                  ...singleSelectOptions.flatMap((o) => ["--single-select-options", o.name]),
+                ]
+              : baseArgs;
 
           const [execError] = await gh(args);
 
@@ -584,26 +589,16 @@ export async function createGitHubClient(ctx: GitHubClientContext): Promise<Resu
 
             const fields = data.data.organization.projectV2.fields.nodes;
             const productAreaField = fields.find((f) => f.name === "Product Area");
-            const optionIdToNameMap = new Map<string, string>();
-
-            if (productAreaField?.options) {
-              for (const option of productAreaField.options) {
-                optionIdToNameMap.set(option.id, option.name);
-              }
-            } else if (productAreaField?.configuration?.iterations) {
-              for (const iteration of productAreaField.configuration.iterations) {
-                optionIdToNameMap.set(iteration.id, iteration.title);
-              }
-            }
+            const optionIdToNameMap = buildOptionIdToNameMap(productAreaField);
 
             const items = data.data.organization.projectV2.items.nodes.map((item) => {
               const statusField = item.fieldValues.nodes.find(
-                (fv) => fv.field?.name === "Status" && fv.name,
+                (fv) => fv.field !== undefined && fv.field.name === "Status" && fv.name,
               );
-              const status = statusField?.name ?? undefined;
+              const status = extractFieldName(statusField);
 
               const productAreaFields = item.fieldValues.nodes.filter(
-                (fv) => fv.field?.name === "Product Area",
+                (fv) => fv.field !== undefined && fv.field.name === "Product Area",
               );
 
               const productAreaNames = productAreaFields
@@ -664,12 +659,9 @@ export async function createGitHubClient(ctx: GitHubClientContext): Promise<Resu
             return [addError, null];
           }
 
-          let itemId: string;
-          try {
-            const data = JSON.parse(addStdout) as { id: string };
-            itemId = data.id;
-          } catch {
-            return [{ type: "parse_error", message: "Failed to parse item ID" }, null];
+          const [parseError, itemId] = parseItemId(addStdout);
+          if (parseError) {
+            return [parseError, null];
           }
 
           if (statusFieldId && statusOptionId) {
@@ -810,6 +802,8 @@ async function gh(args: string[], stdin?: string): Promise<Result<string>> {
   return new Promise((resolve) => {
     const proc = spawn("gh", args, { stdio: ["pipe", "pipe", "pipe"] });
 
+    // Mutable accumulators — must be `let` because Node stream 'data' callbacks
+    // append chunks across multiple events at the I/O boundary.
     let stdout = "";
     let stderr = "";
 
@@ -824,7 +818,11 @@ async function gh(args: string[], stdin?: string): Promise<Result<string>> {
     proc.on("close", (code) => {
       if (code !== 0) {
         resolve([
-          { type: "api_error", message: stderr.trim() || `gh exited with code ${code}`, code },
+          {
+            type: "api_error",
+            message: stderr.trim() || `gh exited with code ${code}`,
+            code: code === null ? undefined : code,
+          },
           null,
         ]);
       } else {
@@ -837,4 +835,59 @@ async function gh(args: string[], stdin?: string): Promise<Result<string>> {
     }
     proc.stdin.end();
   });
+}
+
+/**
+ * Builds a Map from option/iteration ID to display name for the Product Area field.
+ *
+ * @private
+ */
+function buildOptionIdToNameMap(
+  productAreaField:
+    | {
+        options?: Array<{ id: string; name: string }>;
+        configuration?: { iterations: Array<{ id: string; title: string }> };
+      }
+    | undefined,
+): Map<string, string> {
+  if (productAreaField !== undefined && productAreaField.options) {
+    return new Map(productAreaField.options.map((o) => [o.id, o.name]));
+  }
+  if (
+    productAreaField !== undefined &&
+    productAreaField.configuration &&
+    productAreaField.configuration.iterations
+  ) {
+    return new Map(productAreaField.configuration.iterations.map((i) => [i.id, i.title]));
+  }
+  return new Map();
+}
+
+/**
+ * Extracts the name from an optional field value node.
+ *
+ * @private
+ */
+function extractFieldName(field: { name?: string } | undefined): string | undefined {
+  if (field === undefined) {
+    return undefined;
+  }
+  return field.name;
+}
+
+/**
+ * Parses the item ID from the gh project item-add JSON output.
+ *
+ * @private
+ */
+function parseItemId(json: string): Result<string> {
+  try {
+    const parsed = JSON.parse(json) as { id?: string };
+    if (!parsed.id) {
+      return [{ type: "parse_error", message: "No item ID in response" }, null];
+    }
+    return [null, parsed.id];
+  } catch {
+    return [{ type: "parse_error", message: "Failed to parse item-add response" }, null];
+  }
 }

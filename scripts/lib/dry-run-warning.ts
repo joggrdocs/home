@@ -2,6 +2,8 @@
  * Utility for displaying dry-run mode warnings.
  */
 
+import { ANSI } from "./ansi.js";
+
 // ---------------------------------------------------------------------------
 // Exports
 // ---------------------------------------------------------------------------
@@ -20,10 +22,7 @@
  * ```
  */
 export function displayDryRunWarning(): void {
-  const bgYellow = "\x1b[43m";
-  const black = "\x1b[30m";
-  const bold = "\x1b[1m";
-  const reset = "\x1b[0m";
+  const { bgYellow, black, bold, reset } = ANSI;
 
   const message = ` DRY RUN MODE - No changes will be applied `;
   const padding = " ".repeat(message.length);

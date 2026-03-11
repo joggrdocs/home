@@ -4,6 +4,7 @@ issue: 24
 productArea:
   - 🎮 gg-workflow
 ---
+
 # GG: Structure AI Dev Workflow
 
 ## Problem

@@ -1,6 +1,6 @@
 ---
 paths:
-  - '**/*.test.ts'
+  - "**/*.test.ts"
 ---
 
 # Testing Rules
@@ -15,14 +15,14 @@ All tests use [Vitest](https://vitest.dev). Follow these conventions in every te
 - One assertion focus per test case
 
 ```ts
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect } from "vitest";
 
-describe('resolveScript', () => {
-  it('should resolve path relative to workspace root', () => {
-    const result = resolveScriptPath('build', '/project')
-    expect(result).toBe('/project/scripts/build.ts')
-  })
-})
+describe("resolveScript", () => {
+  it("should resolve path relative to workspace root", () => {
+    const result = resolveScriptPath("build", "/project");
+    expect(result).toBe("/project/scripts/build.ts");
+  });
+});
 ```
 
 ## Mocking
@@ -45,10 +45,10 @@ describe('resolveScript', () => {
 - Use `toMatchObject` for partial matching on error shapes
 
 ```ts
-it('should return error result for missing config', async () => {
-  const [error] = await loadConfig('/missing')
-  expect(error).toMatchObject({ type: 'parse_error' })
-})
+it("should return error result for missing config", async () => {
+  const [error] = await loadConfig("/missing");
+  expect(error).toMatchObject({ type: "parse_error" });
+});
 ```
 
 ## Coverage Targets

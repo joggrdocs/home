@@ -1,6 +1,6 @@
 ---
 paths:
-  - 'scripts/**/*.ts'
+  - "scripts/**/*.ts"
 ---
 
 # TypeScript Rules
@@ -47,6 +47,7 @@ These rules are enforced by OXLint and must be followed in all TypeScript files.
 > Full standard: [Coding Style](../../../docs/contributing/standards/typescript/coding-style.md) | [Naming](../../../docs/contributing/standards/typescript/naming.md)
 
 Every source file follows this order:
+
 1. **Imports** — node builtins, blank line, external packages, blank line, internal (farthest-to-closest, alphabetical). Top-level `import type`, no inline type specifiers.
 2. **Module-level constants**
 3. **Exported functions** — public API first, each with full JSDoc. See [Functions](../../../docs/contributing/standards/typescript/functions.md).
@@ -68,5 +69,5 @@ Every source file follows this order:
 
 ## Formatting (OXFmt)
 
-- 100-char line width, 2-space indent, semicolons, single quotes, trailing commas
+- 100-char line width, 2-space indent, semicolons, double quotes, trailing commas
 - Import sorting: builtin > external > internal > parent/sibling/index

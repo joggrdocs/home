@@ -4,6 +4,7 @@ status: Upcoming
 productArea:
   - 🔌 context-integration
 ---
+
 # Safe Dependency Installs for AI Agents
 
 ## Problem

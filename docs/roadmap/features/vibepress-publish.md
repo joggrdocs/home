@@ -4,6 +4,7 @@ issue: 32
 productArea:
   - 📚 documentation
 ---
+
 # Centralize Internal Docs for Developers and AI Agents
 
 ## Problem

@@ -5,6 +5,7 @@ productArea:
   - 📦 agent-sandbox
   - 🎮 gg-workflow
 ---
+
 # GG: Run Coding Agents in Secure Containers
 
 ## Problem

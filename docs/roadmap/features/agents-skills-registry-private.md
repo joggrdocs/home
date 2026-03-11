@@ -4,6 +4,7 @@ issue: 4
 productArea:
   - ⚡ skills-agents
 ---
+
 # Centralize and Govern Agent Skills
 
 ## Problem

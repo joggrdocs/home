@@ -4,6 +4,7 @@ issue: 23
 productArea:
   - 🎮 gg-workflow
 ---
+
 # GG: AI Implementation Plan Review
 
 ## Problem

@@ -109,40 +109,40 @@ We use [shields.io](https://shields.io) badges throughout the documentation and 
 
 Status badges indicate the current state of features in the roadmap. Use `flat-square` style for tables. Colors follow a darkwave/synthwave palette for high contrast in dark mode.
 
-| Status | Color | Badge | Code |
-|--------|-------|-------|------|
-| Released | Dark Teal (`00a67e`) | ![Released](https://img.shields.io/badge/Released-00a67e?style=flat-square) | `![Released](https://img.shields.io/badge/Released-00a67e?style=flat-square)` |
-| In Progress | Burnt Orange (`e85d04`) | ![In Progress](https://img.shields.io/badge/In%20Progress-e85d04?style=flat-square) | `![In Progress](https://img.shields.io/badge/In%20Progress-e85d04?style=flat-square)` |
-| Planned | Imperial Blue (`0C1565`) | ![Planned](https://img.shields.io/badge/Planned-0C1565?style=flat-square) | `![Planned](https://img.shields.io/badge/Planned-0C1565?style=flat-square)` |
-| Upcoming | Imperial Blue (`0C1565`) | ![Upcoming](https://img.shields.io/badge/Upcoming-0C1565?style=flat-square) | `![Upcoming](https://img.shields.io/badge/Upcoming-0C1565?style=flat-square)` |
-| Idea | Electric Purple (`8a04ed`) | ![Idea](https://img.shields.io/badge/Idea-8a04ed?style=flat-square) | `![Idea](https://img.shields.io/badge/Idea-8a04ed?style=flat-square)` |
+| Status      | Color                      | Badge                                                                               | Code                                                                                  |
+| ----------- | -------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Released    | Dark Teal (`00a67e`)       | ![Released](https://img.shields.io/badge/Released-00a67e?style=flat-square)         | `![Released](https://img.shields.io/badge/Released-00a67e?style=flat-square)`         |
+| In Progress | Burnt Orange (`e85d04`)    | ![In Progress](https://img.shields.io/badge/In%20Progress-e85d04?style=flat-square) | `![In Progress](https://img.shields.io/badge/In%20Progress-e85d04?style=flat-square)` |
+| Planned     | Imperial Blue (`0C1565`)   | ![Planned](https://img.shields.io/badge/Planned-0C1565?style=flat-square)           | `![Planned](https://img.shields.io/badge/Planned-0C1565?style=flat-square)`           |
+| Upcoming    | Imperial Blue (`0C1565`)   | ![Upcoming](https://img.shields.io/badge/Upcoming-0C1565?style=flat-square)         | `![Upcoming](https://img.shields.io/badge/Upcoming-0C1565?style=flat-square)`         |
+| Idea        | Electric Purple (`8a04ed`) | ![Idea](https://img.shields.io/badge/Idea-8a04ed?style=flat-square)                 | `![Idea](https://img.shields.io/badge/Idea-8a04ed?style=flat-square)`                 |
 
 ### Action Badges
 
 Action badges link to project views, discussions, or other interactive elements. Always use links with these badges. Uses brand purple (`8B5CF6`).
 
-| Type | Color | Badge | Code |
-|------|-------|-------|------|
-| View | Purple (`8B5CF6`) | [![View](https://img.shields.io/badge/View-8B5CF6?style=flat-square)](https://github.com) | `[![View](https://img.shields.io/badge/View-8B5CF6?style=flat-square)](URL)` |
+| Type    | Color             | Badge                                                                                           | Code                                                                               |
+| ------- | ----------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| View    | Purple (`8B5CF6`) | [![View](https://img.shields.io/badge/View-8B5CF6?style=flat-square)](https://github.com)       | `[![View](https://img.shields.io/badge/View-8B5CF6?style=flat-square)](URL)`       |
 | Discuss | Purple (`8B5CF6`) | [![Discuss](https://img.shields.io/badge/Discuss-8B5CF6?style=flat-square)](https://github.com) | `[![Discuss](https://img.shields.io/badge/Discuss-8B5CF6?style=flat-square)](URL)` |
 
 ### Profile Badges
 
 GitHub profile badges display contributor avatars. Generated automatically by the `readme` script.
 
-| Style | Badge | Code |
-|-------|-------|------|
+| Style  | Badge                                                                                                                              | Code                                                                                                                        |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | Simple | [![@zrosenbauer](https://img.shields.io/badge/%40zrosenbauer-black?style=flat-square&logo=github)](https://github.com/zrosenbauer) | `[![@username](https://img.shields.io/badge/%40username-black?style=flat-square&logo=github)](https://github.com/username)` |
 
 ### Header Badges
 
 Header badges appear at the top of the README with logos. Use `for-the-badge` style for headers.
 
-| Type | Badge | Code |
-|------|-------|------|
-| Roadmap | [![Roadmap](https://img.shields.io/badge/Roadmap-8B5CF6?style=for-the-badge&logo=googlemaps&logoColor=white)](https://github.com) | `[![Roadmap](https://img.shields.io/badge/Roadmap-8B5CF6?style=for-the-badge&logo=googlemaps&logoColor=white)](URL)` |
+| Type        | Badge                                                                                                                                   | Code                                                                                                                       |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Roadmap     | [![Roadmap](https://img.shields.io/badge/Roadmap-8B5CF6?style=for-the-badge&logo=googlemaps&logoColor=white)](https://github.com)       | `[![Roadmap](https://img.shields.io/badge/Roadmap-8B5CF6?style=for-the-badge&logo=googlemaps&logoColor=white)](URL)`       |
 | Discussions | [![Discussions](https://img.shields.io/badge/Discussions-8B5CF6?style=for-the-badge&logo=imessage&logoColor=white)](https://github.com) | `[![Discussions](https://img.shields.io/badge/Discussions-8B5CF6?style=for-the-badge&logo=imessage&logoColor=white)](URL)` |
-| Issues | [![Issues](https://img.shields.io/badge/Issues-8B5CF6?style=for-the-badge&logo=github&logoColor=white)](https://github.com) | `[![Issues](https://img.shields.io/badge/Issues-8B5CF6?style=for-the-badge&logo=github&logoColor=white)](URL)` |
+| Issues      | [![Issues](https://img.shields.io/badge/Issues-8B5CF6?style=for-the-badge&logo=github&logoColor=white)](https://github.com)             | `[![Issues](https://img.shields.io/badge/Issues-8B5CF6?style=for-the-badge&logo=github&logoColor=white)](URL)`             |
 
 ### Badge Guidelines
 

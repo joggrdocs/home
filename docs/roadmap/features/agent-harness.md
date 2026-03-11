@@ -4,9 +4,10 @@ issue: 2
 productArea:
   - 🏗️ platform
 ---
+
 # Agent Harness
 
-**Status:** ![Planned](https://img.shields.io/badge/Planned-%23003366)
+**Status:** ![In progress](https://img.shields.io/badge/In%20progress-%23e85d04)
 
 ## Summary
 

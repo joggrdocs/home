@@ -44,16 +44,16 @@ Use **camelCase** for variables and function names.
 #### Correct
 
 ```ts
-const userId = '123'
-const isAuthenticated = true
+const userId = "123";
+const isAuthenticated = true;
 function parseHeaders() {}
 ```
 
 #### Incorrect
 
 ```ts
-const user_id = '123'
-const IsAuthenticated = true
+const user_id = "123";
+const IsAuthenticated = true;
 function ParseHeaders() {}
 ```
 
@@ -64,19 +64,19 @@ Use **SCREAMING_SNAKE_CASE** for constants. Group related constants in objects w
 #### Correct
 
 ```ts
-export const MAX_RETRIES = 3
+export const MAX_RETRIES = 3;
 
 export const SCRIPT_EVENTS = {
-  START: 'start',
-  COMPLETE: 'complete',
-} as const
+  START: "start",
+  COMPLETE: "complete",
+} as const;
 ```
 
 #### Incorrect
 
 ```ts
-export const maxRetries = 3
-export const scriptEvents = { start: 'start' }
+export const maxRetries = 3;
+export const scriptEvents = { start: "start" };
 ```
 
 ### Object Property Naming
@@ -89,20 +89,20 @@ Prefer **nested objects** when properties form a logical group. Use flat naming 
 // Nested — grouped by relationship
 interface Config {
   runner: {
-    timeout: number
-    parallel: boolean
-  }
+    timeout: number;
+    parallel: boolean;
+  };
   output: {
-    format: string
-    verbose: boolean
-  }
+    format: string;
+    verbose: boolean;
+  };
 }
 
 // Flat — simple DTO, destructuring is primary use
 interface RunScriptParams {
-  name: string
-  workspace: string
-  dryRun: boolean
+  name: string;
+  workspace: string;
+  dryRun: boolean;
 }
 ```
 
@@ -111,18 +111,18 @@ interface RunScriptParams {
 ```ts
 // Concatenated names instead of nesting
 interface Config {
-  runnerTimeout: number
-  runnerParallel: boolean
-  outputFormat: string
-  outputVerbose: boolean
+  runnerTimeout: number;
+  runnerParallel: boolean;
+  outputFormat: string;
+  outputVerbose: boolean;
 }
 
 // Unnecessary nesting for unrelated properties
 interface RunScriptParams {
   data: {
-    name: string
-    workspace: string
-  }
+    name: string;
+    workspace: string;
+  };
 }
 ```
 

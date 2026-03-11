@@ -1,5 +1,5 @@
-import { defineConfig } from 'laufen'
+import { defineConfig } from "laufen";
 
 export default defineConfig({
-  scripts: ['scripts/*.lauf.ts'],
-})
+  scripts: ["scripts/*.lauf.ts"],
+});

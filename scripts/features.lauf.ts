@@ -3,27 +3,20 @@ import { join } from "node:path";
 
 import { diffLines } from "diff";
 import { lauf, z } from "laufen";
-import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 
+import { ANSI } from "./lib/ansi.js";
 import { createBackup } from "./lib/backup.js";
+import { FEATURES_DIR, readProjectConfig } from "./lib/config.js";
 import { displayDryRunWarning } from "./lib/dry-run-warning.js";
+import { FRONTMATTER_RE, parseFrontmatter, updateFrontmatter } from "./lib/frontmatter.js";
 import { createGitHubClient } from "./lib/github-client.js";
+import { reverseStatusMapping } from "./lib/status.js";
 
-const FEATURES_DIR = "docs/roadmap/features";
-const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---/;
-const MAX_BODY_SECTIONS = 3;
+export const MAX_BODY_SECTIONS = 3;
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-interface FeaturesConfig {
-  project: {
-    owner: string;
-    number: number;
-  };
-  statusMapping: Record<string, string>;
-}
 
 interface Frontmatter {
   status?: string;
@@ -110,7 +103,7 @@ export default lauf({
           ],
         });
 
-        if (promptErr?.cancelled || cancelled) {
+        if ((promptErr !== null && promptErr.cancelled) || cancelled) {
           ctx.logger.warn("Cancelled by user");
           return 1;
         }
@@ -122,7 +115,12 @@ export default lauf({
 
       // Step 1: Read project config from scripts/conf/project.json
       ctx.spinner.start("Reading project config...");
-      const config = await readFeaturesConfig(ctx.root);
+      const [configError, config] = await readProjectConfig(ctx.root);
+      if (configError) {
+        ctx.spinner.stop();
+        ctx.logger.error(`Failed to read config: ${configError.message}`);
+        return 1;
+      }
       const { owner, number } = config.project;
       ctx.spinner.stop(`Read config for project #${number} (${owner})`);
 
@@ -150,12 +148,11 @@ export default lauf({
           ctx.logger.error(`Failed to fetch project items: ${itemsError.message}`);
           return 1;
         }
-        const projectItems = new Map<number, string | null>();
-        for (const item of projectItemsData) {
-          if (item.content.number) {
-            projectItems.set(item.content.number, item.status ?? null);
-          }
-        }
+        const projectItems = new Map(
+          projectItemsData
+            .filter((item) => item.content.number !== undefined)
+            .map((item) => [item.content.number as number, item.status ?? null] as const),
+        );
         ctx.spinner.stop(`Fetched ${projectItems.size} project item(s)`);
 
         if (cancelled) {
@@ -200,7 +197,7 @@ export default lauf({
           // eslint-disable-next-line no-await-in-loop
           const raw = await readFile(filepath, "utf-8");
 
-          const parsed = parseFrontmatter(raw);
+          const parsed = parseFrontmatter<Frontmatter>(raw);
           if (!parsed) {
             if (ctx.args.verbose) {
               ctx.logger.warn(`Skipping ${filename}: no frontmatter`);
@@ -227,7 +224,7 @@ export default lauf({
             continue;
           }
 
-          const localStatus = githubStatus ? reverseMapping.get(githubStatus) : undefined;
+          const localStatus = resolveReverseStatus(githubStatus, reverseMapping);
           const statusChanged = localStatus !== parsed.frontmatter.status;
 
           // Fetch and compare issue body
@@ -242,7 +239,7 @@ export default lauf({
           const githubBody = issueData.body;
           const localBody = buildIssueBody(parsed.content);
 
-          const contentChanged = localBody ? localBody.body !== githubBody : false;
+          const contentChanged = localBody !== null && localBody.body !== githubBody;
 
           if (!statusChanged && !contentChanged) {
             if (ctx.args.verbose) {
@@ -273,10 +270,7 @@ export default lauf({
         }
 
         // Step 2: Display changes in diff format
-        const red = "\x1b[31m";
-        const green = "\x1b[32m";
-        const dim = "\x1b[2m";
-        const reset = "\x1b[0m";
+        const { red, green, dim, reset } = ANSI;
 
         ctx.logger.newlines();
         ctx.logger.info(`┌─ Changes to be applied (${changes.length} file(s))`);
@@ -331,7 +325,7 @@ export default lauf({
           initialValue: true,
         });
 
-        if (confirmErr?.cancelled || !confirmed || cancelled) {
+        if ((confirmErr !== null && confirmErr.cancelled) || !confirmed || cancelled) {
           ctx.logger.warn("Cancelled by user");
           return 1;
         }
@@ -368,7 +362,7 @@ export default lauf({
           let updatedRaw = change.raw;
 
           if (change.statusChanged) {
-            updatedRaw = updateFrontmatter(updatedRaw, { status: change.toStatus });
+            updatedRaw = updateFrontmatter<Frontmatter>(updatedRaw, { status: change.toStatus });
           }
 
           if (change.contentChanged) {
@@ -381,15 +375,15 @@ export default lauf({
           // eslint-disable-next-line no-await-in-loop
           await writeFile(change.filepath, updatedRaw);
 
-          const changes_list: string[] = [];
+          const changesList: string[] = [];
           if (change.statusChanged) {
-            changes_list.push(`status → ${change.toStatus}`);
+            changesList.push(`status → ${change.toStatus}`);
           }
           if (change.contentChanged) {
-            changes_list.push("content");
+            changesList.push("content");
           }
 
-          ctx.logger.success(`Updated ${change.filename} [${changes_list.join(", ")}]`);
+          ctx.logger.success(`Updated ${change.filename} [${changesList.join(", ")}]`);
           updated++;
         }
 
@@ -423,15 +417,17 @@ export default lauf({
         ctx.logger.error(`Failed to fetch project items: ${itemsError.message}`);
         return 1;
       }
-      const projectItems = new Map<number, { status?: string; productArea?: readonly string[] }>();
-      for (const item of projectItemsData) {
-        if (item.content.number) {
-          projectItems.set(item.content.number, {
-            status: item.status,
-            productArea: item.productArea,
-          });
-        }
-      }
+      const projectItems = new Map(
+        projectItemsData
+          .filter((item) => item.content.number !== undefined)
+          .map(
+            (item) =>
+              [
+                item.content.number as number,
+                { status: item.status, productArea: item.productArea },
+              ] as const,
+          ),
+      );
       ctx.spinner.stop(`Fetched ${projectItems.size} project item(s)`);
 
       const featuresToCreate: FeatureFile[] = [];
@@ -447,7 +443,7 @@ export default lauf({
         // eslint-disable-next-line no-await-in-loop
         const raw = await readFile(filepath, "utf-8");
 
-        const parsed = parseFrontmatter(raw);
+        const parsed = parseFrontmatter<Frontmatter>(raw);
         if (!parsed) {
           ctx.logger.warn(`Skipping ${filename}: no frontmatter`);
           continue;
@@ -485,13 +481,11 @@ export default lauf({
           }
 
           const projectItem = projectItems.get(parsed.frontmatter.issue);
-          const localStatus = parsed.frontmatter.status
-            ? config.statusMapping[parsed.frontmatter.status]
-            : undefined;
-          const githubStatus = projectItem?.status;
+          const localStatus = resolveLocalStatus(parsed.frontmatter.status, config.statusMapping);
+          const githubStatus = extractItemStatus(projectItem);
 
           const localProductArea = parsed.frontmatter.productArea ?? [];
-          const githubProductArea = projectItem?.productArea ?? [];
+          const githubProductArea = extractItemProductArea(projectItem);
 
           const bodyChanged = built.body !== issueData.body;
           const statusChanged = localStatus !== githubStatus;
@@ -503,14 +497,14 @@ export default lauf({
             featuresToUpdate.push({
               ...feature,
               issueNumber: parsed.frontmatter.issue,
-              changes: {
+              changes: buildFeatureChanges({
                 bodyChanged,
                 statusChanged,
                 productAreaChanged,
-                oldBody: bodyChanged ? issueData.body : undefined,
-                oldStatus: statusChanged ? githubStatus : undefined,
-                oldProductArea: productAreaChanged ? githubProductArea : undefined,
-              },
+                issueBody: issueData.body,
+                githubStatus,
+                githubProductArea,
+              }),
             });
           } else if (ctx.args.verbose) {
             ctx.logger.info(`${filename}: issue #${parsed.frontmatter.issue} already in sync`);
@@ -532,10 +526,7 @@ export default lauf({
       );
 
       // Display changes in diff format
-      const red = "\x1b[31m";
-      const green = "\x1b[32m";
-      const dim = "\x1b[2m";
-      const reset = "\x1b[0m";
+      const { red, green, dim, reset } = ANSI;
 
       ctx.logger.newlines();
       ctx.logger.info(
@@ -543,11 +534,8 @@ export default lauf({
       );
 
       for (const feature of featuresToCreate) {
-        const statusLabel = feature.frontmatter.status ? ` [${feature.frontmatter.status}]` : "";
-        const productAreaLabel =
-          feature.frontmatter.productArea && feature.frontmatter.productArea.length > 0
-            ? ` (${feature.frontmatter.productArea.join(", ")})`
-            : "";
+        const statusLabel = formatStatusLabel(feature.frontmatter.status);
+        const productAreaLabel = formatProductAreaLabel(feature.frontmatter.productArea);
         ctx.logger.message(
           `│ ${green}+ Create issue: ${feature.title}${statusLabel}${productAreaLabel}${reset}`,
         );
@@ -587,9 +575,8 @@ export default lauf({
         }
 
         if (feature.changes.statusChanged) {
-          const localStatus = feature.frontmatter.status
-            ? config.statusMapping[feature.frontmatter.status]
-            : "(none)";
+          const localStatus =
+            resolveLocalStatus(feature.frontmatter.status, config.statusMapping) ?? "(none)";
           const oldStatus = feature.changes.oldStatus ?? "(none)";
           ctx.logger.message(`│   ${red}- status: ${oldStatus}${reset}`);
           ctx.logger.message(`│   ${green}+ status: ${localStatus}${reset}`);
@@ -623,7 +610,7 @@ export default lauf({
         initialValue: true,
       });
 
-      if (confirmErr?.cancelled || !confirmed || cancelled) {
+      if ((confirmErr !== null && confirmErr.cancelled) || !confirmed || cancelled) {
         ctx.logger.warn("Cancelled by user");
         return 1;
       }
@@ -679,13 +666,7 @@ export default lauf({
         options: new Map(statusFieldData.options.map((o) => [o.name, o.id])),
       };
 
-      const productAreaField: ProductAreaField | undefined = productAreaFieldData?.options
-        ? {
-            id: productAreaFieldData.id,
-            type: productAreaFieldData.type,
-            options: new Map(productAreaFieldData.options.map((o) => [o.name, o.id])),
-          }
-        : undefined;
+      const productAreaField = buildProductAreaField(productAreaFieldData);
 
       ctx.spinner.stop("Fetched project field options");
 
@@ -716,12 +697,11 @@ export default lauf({
       let processed = 0;
 
       // Build project items map with IDs
-      const projectItemsWithIds = new Map<number, string>();
-      for (const item of projectItemsData) {
-        if (item.content.number) {
-          projectItemsWithIds.set(item.content.number, item.id);
-        }
-      }
+      const projectItemsWithIds = new Map(
+        projectItemsData
+          .filter((item) => item.content.number !== undefined)
+          .map((item) => [item.content.number as number, item.id] as const),
+      );
 
       // Process updates first
       for (const feature of featuresToUpdate) {
@@ -814,32 +794,7 @@ export default lauf({
             // Both single-select and iteration fields only support a single value
             const optionId = productAreaOptionIds[0];
 
-            const query =
-              productAreaField.type === "ProjectV2SingleSelectField"
-                ? `
-                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-                  updateProjectV2ItemFieldValue(input: {
-                    projectId: $projectId
-                    itemId: $itemId
-                    fieldId: $fieldId
-                    value: { singleSelectOptionId: $optionId }
-                  }) {
-                    projectV2Item { id }
-                  }
-                }
-              `
-                : `
-                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-                  updateProjectV2ItemFieldValue(input: {
-                    projectId: $projectId
-                    itemId: $itemId
-                    fieldId: $fieldId
-                    value: { iterationId: $optionId }
-                  }) {
-                    projectV2Item { id }
-                  }
-                }
-              `;
+            const query = buildProductAreaMutation(productAreaField.type);
 
             // eslint-disable-next-line no-await-in-loop
             const [productAreaError] = await github.graphql({
@@ -897,26 +852,24 @@ export default lauf({
           continue;
         }
 
-        const mappedStatus = feature.frontmatter.status
-          ? config.statusMapping[feature.frontmatter.status]
-          : undefined;
+        const mappedStatus = resolveLocalStatus(feature.frontmatter.status, config.statusMapping);
 
-        const productAreaOptionIds =
-          productAreaField && feature.frontmatter.productArea
-            ? feature.frontmatter.productArea
-                .map((area) => productAreaField.options.get(area))
-                .filter((id): id is string => id !== undefined)
-            : undefined;
+        const productAreaOptionIds = resolveProductAreaOptionIds(
+          productAreaField,
+          feature.frontmatter.productArea,
+        );
 
         if (existingIssue) {
           // Link existing issue instead of creating a duplicate
-          const updated = updateFrontmatter(feature.raw, { issue: existingIssue.number });
+          const updated = updateFrontmatter<Frontmatter>(feature.raw, {
+            issue: existingIssue.number,
+          });
           // eslint-disable-next-line no-await-in-loop
           await writeFile(feature.filepath, updated);
 
           ctx.spinner.message(`Adding #${existingIssue.number} to project...`);
 
-          const optionId = mappedStatus ? statusField.options.get(mappedStatus) : undefined;
+          const optionId = resolveOptionId(mappedStatus, statusField.options);
           // eslint-disable-next-line no-await-in-loop
           const [addError] = await github.projects.items.add({
             owner,
@@ -925,7 +878,7 @@ export default lauf({
             issueUrl: existingIssue.url,
             statusFieldId: statusField.id,
             statusOptionId: optionId,
-            productAreaFieldId: productAreaField?.id,
+            productAreaFieldId: getFieldId(productAreaField),
             productAreaOptionIds,
           });
 
@@ -935,7 +888,7 @@ export default lauf({
             continue;
           }
 
-          const statusLabel = feature.frontmatter.status ? ` [${feature.frontmatter.status}]` : "";
+          const statusLabel = formatStatusLabel(feature.frontmatter.status);
           ctx.spinner.stop(
             `Linked existing issue #${existingIssue.number}${statusLabel} for "${feature.title}"`,
           );
@@ -954,13 +907,13 @@ export default lauf({
           }
 
           // Write frontmatter immediately so re-runs don't create duplicates
-          const updated = updateFrontmatter(feature.raw, { issue: issue.number });
+          const updated = updateFrontmatter<Frontmatter>(feature.raw, { issue: issue.number });
           // eslint-disable-next-line no-await-in-loop
           await writeFile(feature.filepath, updated);
 
           ctx.spinner.message(`Adding #${issue.number} to project...`);
 
-          const optionId = mappedStatus ? statusField.options.get(mappedStatus) : undefined;
+          const optionId = resolveOptionId(mappedStatus, statusField.options);
           // eslint-disable-next-line no-await-in-loop
           const [addError] = await github.projects.items.add({
             owner,
@@ -969,7 +922,7 @@ export default lauf({
             issueUrl: issue.url,
             statusFieldId: statusField.id,
             statusOptionId: optionId,
-            productAreaFieldId: productAreaField?.id,
+            productAreaFieldId: getFieldId(productAreaField),
             productAreaOptionIds,
           });
 
@@ -979,7 +932,7 @@ export default lauf({
             continue;
           }
 
-          const statusLabel = feature.frontmatter.status ? ` [${feature.frontmatter.status}]` : "";
+          const statusLabel = formatStatusLabel(feature.frontmatter.status);
           ctx.spinner.stop(`Created issue #${issue.number}${statusLabel} for "${feature.title}"`);
         }
 
@@ -999,47 +952,13 @@ export default lauf({
 // ---------------------------------------------------------------------------
 
 /**
- * Parses frontmatter from markdown content.
- *
- * @private
- */
-function parseFrontmatter(raw: string): { frontmatter: Frontmatter; content: string } | null {
-  const match = raw.match(FRONTMATTER_RE);
-  if (!match) {
-    return null;
-  }
-
-  const frontmatter = parseYaml(match[1]) as Frontmatter;
-  const content = raw.slice(match[0].length).replace(/^\n+/, "");
-
-  return { frontmatter, content };
-}
-
-/**
- * Updates frontmatter in markdown content.
- *
- * @private
- */
-function updateFrontmatter(raw: string, updates: Partial<Frontmatter>): string {
-  const match = raw.match(FRONTMATTER_RE);
-  if (!match) {
-    return raw;
-  }
-
-  const frontmatter = { ...(parseYaml(match[1]) as Frontmatter), ...updates };
-  const rest = raw.slice(match[0].length);
-
-  return `---\n${stringifyYaml(frontmatter).trimEnd()}\n---${rest}`;
-}
-
-/**
  * Builds the issue body from the markdown content (without frontmatter).
  *
  * Includes the H1 title and the first N `##` sections.
  *
  * @private
  */
-function buildIssueBody(content: string): { title: string; body: string } | null {
+export function buildIssueBody(content: string): { title: string; body: string } | null {
   const lines = content.split("\n");
 
   const titleIdx = lines.findIndex((l) => /^#\s+/.test(l));
@@ -1075,31 +994,214 @@ function buildIssueBody(content: string): { title: string; body: string } | null
 }
 
 /**
- * Reads project owner, number, and statusMapping from scripts/conf/project.json.
+ * Resolves a local frontmatter status to a GitHub status via the mapping.
  *
  * @private
  */
-async function readFeaturesConfig(root: string): Promise<FeaturesConfig> {
-  const raw = await readFile(join(root, "scripts/conf/project.json"), "utf-8");
-  const parsed = JSON.parse(raw) as Record<string, unknown>;
-  const project = parsed.project as FeaturesConfig["project"];
-  const statusMapping = (parsed.statusMapping ?? {}) as Record<string, string>;
+function resolveLocalStatus(
+  status: string | undefined,
+  statusMapping: Record<string, string>,
+): string | undefined {
+  if (status === undefined) {
+    return undefined;
+  }
+  return statusMapping[status];
+}
 
+/**
+ * Resolves a GitHub status string through a reverse mapping.
+ *
+ * @private
+ */
+function resolveReverseStatus(
+  githubStatus: string | null,
+  reverseMapping: Map<string, string>,
+): string | undefined {
+  if (githubStatus === null) {
+    return undefined;
+  }
+  return reverseMapping.get(githubStatus);
+}
+
+/**
+ * Extracts the status from a project item, or undefined if absent.
+ *
+ * @private
+ */
+function extractItemStatus(item: { status?: string } | undefined): string | undefined {
+  if (item === undefined) {
+    return undefined;
+  }
+  return item.status;
+}
+
+/**
+ * Extracts the product area array from a project item, or empty array if absent.
+ *
+ * @private
+ */
+function extractItemProductArea(
+  item: { productArea?: readonly string[] } | undefined,
+): readonly string[] {
+  if (item === undefined) {
+    return [];
+  }
+  return item.productArea ?? [];
+}
+
+/**
+ * Builds the feature changes object for tracking what needs to be updated.
+ *
+ * @private
+ */
+function buildFeatureChanges(params: {
+  readonly bodyChanged: boolean;
+  readonly statusChanged: boolean;
+  readonly productAreaChanged: boolean;
+  readonly issueBody: string;
+  readonly githubStatus: string | undefined;
+  readonly githubProductArea: readonly string[];
+}): FeatureChanges {
   return {
-    project: { owner: project.owner, number: project.number },
-    statusMapping,
+    bodyChanged: params.bodyChanged,
+    statusChanged: params.statusChanged,
+    productAreaChanged: params.productAreaChanged,
+    oldBody: conditionalValue(params.bodyChanged, params.issueBody),
+    oldStatus: conditionalValue(params.statusChanged, params.githubStatus),
+    oldProductArea: conditionalValue(params.productAreaChanged, params.githubProductArea),
   };
 }
 
 /**
- * Creates a reverse mapping from GitHub status to local status.
+ * Formats a status string as a bracketed label for display.
  *
  * @private
  */
-function reverseStatusMapping(mapping: Record<string, string>): Map<string, string> {
-  const reversed = new Map<string, string>();
-  for (const [localStatus, githubStatus] of Object.entries(mapping)) {
-    reversed.set(githubStatus, localStatus);
+function formatStatusLabel(status: string | undefined): string {
+  if (status === undefined) {
+    return "";
   }
-  return reversed;
+  return ` [${status}]`;
+}
+
+/**
+ * Formats a product area array as a parenthesized label for display.
+ *
+ * @private
+ */
+function formatProductAreaLabel(productArea: string[] | undefined): string {
+  if (productArea === undefined || productArea.length === 0) {
+    return "";
+  }
+  return ` (${productArea.join(", ")})`;
+}
+
+/**
+ * Builds the ProductAreaField from raw field data, or returns undefined.
+ *
+ * @private
+ */
+function buildProductAreaField(
+  fieldData:
+    | { id: string; type: string; options?: ReadonlyArray<{ name: string; id: string }> }
+    | undefined,
+): ProductAreaField | undefined {
+  if (fieldData === undefined || fieldData.options === undefined) {
+    return undefined;
+  }
+  return {
+    id: fieldData.id,
+    type: fieldData.type,
+    options: new Map(fieldData.options.map((o) => [o.name, o.id])),
+  };
+}
+
+/**
+ * Extracts the ID from an optional field object.
+ *
+ * @private
+ */
+function getFieldId(field: { id: string } | undefined): string | undefined {
+  if (field === undefined) {
+    return undefined;
+  }
+  return field.id;
+}
+
+/**
+ * Resolves an option ID from a mapped status string.
+ *
+ * @private
+ */
+function resolveOptionId(
+  mappedStatus: string | undefined,
+  options: Map<string, string>,
+): string | undefined {
+  if (mappedStatus === undefined) {
+    return undefined;
+  }
+  return options.get(mappedStatus);
+}
+
+/**
+ * Resolves product area option IDs from frontmatter product area names.
+ *
+ * @private
+ */
+function resolveProductAreaOptionIds(
+  productAreaField: ProductAreaField | undefined,
+  productArea: string[] | undefined,
+): string[] | undefined {
+  if (productAreaField === undefined || productArea === undefined) {
+    return undefined;
+  }
+  return productArea
+    .map((area) => productAreaField.options.get(area))
+    .filter((id): id is string => id !== undefined);
+}
+
+/**
+ * Builds the GraphQL mutation query for updating a product area field.
+ *
+ * @private
+ */
+function buildProductAreaMutation(fieldType: string): string {
+  if (fieldType === "ProjectV2SingleSelectField") {
+    return `
+      mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+        updateProjectV2ItemFieldValue(input: {
+          projectId: $projectId
+          itemId: $itemId
+          fieldId: $fieldId
+          value: { singleSelectOptionId: $optionId }
+        }) {
+          projectV2Item { id }
+        }
+      }
+    `;
+  }
+  return `
+    mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+      updateProjectV2ItemFieldValue(input: {
+        projectId: $projectId
+        itemId: $itemId
+        fieldId: $fieldId
+        value: { iterationId: $optionId }
+      }) {
+        projectV2Item { id }
+      }
+    }
+  `;
+}
+
+/**
+ * Returns the value when the condition is true, undefined otherwise.
+ *
+ * @private
+ */
+function conditionalValue<T>(condition: boolean, value: T): T | undefined {
+  if (condition) {
+    return value;
+  }
+  return undefined;
 }

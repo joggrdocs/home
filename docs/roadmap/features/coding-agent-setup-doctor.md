@@ -4,6 +4,7 @@ issue: 7
 productArea:
   - 🔧 agent-setup
 ---
+
 # Audit Your AI Coding Setup
 
 ## Problem

@@ -2,32 +2,20 @@ import { readFile, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { lauf, z } from "laufen";
-import { parse as parseYaml } from "yaml";
 
 import { createBackup } from "./lib/backup.js";
+import { FEATURES_DIR, readProjectConfig } from "./lib/config.js";
 import { displayDiff, type DiffChange } from "./lib/diff.js";
 import { displayDryRunWarning } from "./lib/dry-run-warning.js";
+import { extractErrorMessage } from "./lib/errors.js";
+import { extractTitle, parseFrontmatter } from "./lib/frontmatter.js";
 import type { ProjectItem } from "./lib/github-client.js";
 import { createGitHubClient } from "./lib/github-client.js";
+import { reverseStatusMapping } from "./lib/status.js";
 
 const README_PATH = "README.md";
-const FEATURES_DIR = "docs/roadmap/features";
 const TARGET_START = "<!-- target:roadmap-table:start -->";
 const TARGET_END = "<!-- target:roadmap-table:end -->";
-const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---/;
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-interface ProjectConfig {
-  readonly project: {
-    readonly owner: string;
-    readonly repo: string;
-    readonly number: number;
-  };
-  readonly statusMapping: Record<string, string>;
-}
 
 interface FeatureFrontmatter {
   readonly status?: string;
@@ -41,13 +29,13 @@ interface FeatureFile {
   readonly filename: string;
 }
 
-interface Assignee {
+export interface Assignee {
   readonly login: string;
   readonly avatarUrl: string;
   readonly profileUrl: string;
 }
 
-interface RoadmapItem {
+export interface RoadmapItem {
   readonly title: string;
   readonly status: string;
   readonly issueNumber: number;
@@ -55,7 +43,7 @@ interface RoadmapItem {
   readonly assignees: readonly Assignee[];
 }
 
-interface StatusBadge {
+export interface StatusBadge {
   readonly label: string;
   readonly color: string;
 }
@@ -221,7 +209,7 @@ export default lauf({
         initialValue: true,
       });
 
-      if (confirmErr?.cancelled || !confirmed) {
+      if ((confirmErr !== null && confirmErr.cancelled) || !confirmed) {
         ctx.logger.warn("Cancelled by user");
         return 1;
       }
@@ -265,35 +253,6 @@ export default lauf({
 // ---------------------------------------------------------------------------
 
 /**
- * Reads project configuration from scripts/conf/project.json.
- *
- * @private
- */
-async function readProjectConfig(root: string): Promise<[Error, null] | [null, ProjectConfig]> {
-  try {
-    const raw = await readFile(join(root, "scripts/conf/project.json"), "utf-8");
-    const parsed = JSON.parse(raw) as {
-      project: { owner: string; repo: string; number: number };
-      statusMapping: Record<string, string>;
-    };
-    return [
-      null,
-      {
-        project: {
-          owner: parsed.project.owner,
-          repo: parsed.project.repo,
-          number: parsed.project.number,
-        },
-        statusMapping: parsed.statusMapping ?? {},
-      },
-    ];
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return [new Error(`Failed to read scripts/conf/project.json: ${message}`), null];
-  }
-}
-
-/**
  * Reads and parses all feature files from the features directory.
  *
  * @private
@@ -305,73 +264,32 @@ async function readFeatureFiles(
     const files = await readdir(featuresPath);
     const mdFiles = files.filter((f) => f.endsWith(".md"));
 
-    const features: FeatureFile[] = [];
-
-    for (const filename of mdFiles) {
-      const filepath = join(featuresPath, filename);
-      // eslint-disable-next-line no-await-in-loop
-      const raw = await readFile(filepath, "utf-8");
-
-      const parsed = parseFrontmatter(raw);
-      if (!parsed) {
-        continue;
-      }
-
-      const { frontmatter, content } = parsed;
-
-      if (!frontmatter.issue) {
-        continue;
-      }
-
-      const title = extractTitle(content);
-      if (!title) {
-        continue;
-      }
-
-      features.push({
-        title,
-        issueNumber: frontmatter.issue,
-        filename,
-      });
-    }
+    const features = (
+      await Promise.all(
+        mdFiles.map(async (filename) => {
+          const filepath = join(featuresPath, filename);
+          const raw = await readFile(filepath, "utf-8");
+          const parsed = parseFrontmatter<FeatureFrontmatter>(raw);
+          if (!parsed) {
+            return null;
+          }
+          const { frontmatter, content } = parsed;
+          if (!frontmatter.issue) {
+            return null;
+          }
+          const title = extractTitle(content);
+          if (!title) {
+            return null;
+          }
+          return { title, issueNumber: frontmatter.issue, filename };
+        }),
+      )
+    ).filter((f): f is FeatureFile => f !== null);
 
     return [null, features];
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return [new Error(`Failed to read feature files: ${message}`), null];
+    return [new Error(`Failed to read feature files: ${extractErrorMessage(error)}`), null];
   }
-}
-
-/**
- * Parses frontmatter from markdown content.
- *
- * @private
- */
-function parseFrontmatter(
-  raw: string,
-): { frontmatter: FeatureFrontmatter; content: string } | null {
-  const match = raw.match(FRONTMATTER_RE);
-  if (!match) {
-    return null;
-  }
-
-  const frontmatter = parseYaml(match[1]) as FeatureFrontmatter;
-  const content = raw.slice(match[0].length).replace(/^\n+/, "");
-
-  return { frontmatter, content };
-}
-
-/**
- * Extracts title from markdown content.
- *
- * @private
- */
-function extractTitle(content: string): string | null {
-  const match = content.match(/^#\s+(.+)$/m);
-  if (!match) {
-    return null;
-  }
-  return match[1].trim();
 }
 
 /**
@@ -394,16 +312,15 @@ async function matchFeaturesWithStatus(params: {
   }
 
   const reverseMapping = reverseStatusMapping(statusMapping);
-  const itemsByIssue = new Map<number, ProjectItem>();
-
-  for (const item of projectItems) {
-    if (item.content.number) {
-      itemsByIssue.set(item.content.number, item);
-    }
-  }
+  const itemsByIssue = new Map(
+    projectItems
+      .filter((item) => item.content.number !== undefined)
+      .map((item) => [item.content.number as number, item]),
+  );
 
   const roadmapItems: RoadmapItem[] = [];
 
+  // Sequential loop — each iteration makes a GitHub API call and order matters.
   for (const feature of features) {
     const projectItem = itemsByIssue.get(feature.issueNumber);
     if (!projectItem) {
@@ -414,7 +331,15 @@ async function matchFeaturesWithStatus(params: {
     }
 
     const githubStatus = projectItem.status ?? null;
-    const localStatus = githubStatus ? reverseMapping.get(githubStatus) : undefined;
+
+    if (githubStatus === null) {
+      if (verbose) {
+        logger.info(`Skipping ${feature.filename}: no status in project`);
+      }
+      continue;
+    }
+
+    const localStatus = reverseMapping.get(githubStatus);
 
     if (!localStatus) {
       if (verbose) {
@@ -454,25 +379,11 @@ async function matchFeaturesWithStatus(params: {
 }
 
 /**
- * Creates a reverse mapping from GitHub status to local status.
- *
- * @private
- */
-function reverseStatusMapping(mapping: Record<string, string>): Map<string, string> {
-  const reversed = new Map<string, string>();
-  const entries = Object.entries(mapping);
-  for (const [localStatus, githubStatus] of entries) {
-    reversed.set(githubStatus, localStatus);
-  }
-  return reversed;
-}
-
-/**
  * Builds markdown table from roadmap items.
  *
  * @private
  */
-function buildMarkdownTable(
+export function buildMarkdownTable(
   items: readonly RoadmapItem[],
   owner: string,
   repo: string,
@@ -491,7 +402,7 @@ function buildMarkdownTable(
  *
  * @private
  */
-function formatTableRow(
+export function formatTableRow(
   item: RoadmapItem,
   owner: string,
   repo: string,
@@ -515,7 +426,7 @@ function formatTableRow(
  *
  * @private
  */
-function formatAssignee(assignees: readonly Assignee[]): string {
+export function formatAssignee(assignees: readonly Assignee[]): string {
   if (assignees.length !== 1) {
     return "";
   }
@@ -532,7 +443,7 @@ function formatAssignee(assignees: readonly Assignee[]): string {
  *
  * @private
  */
-function getStatusBadge(status: string): StatusBadge {
+export function getStatusBadge(status: string): StatusBadge {
   const badges: Record<string, StatusBadge> = {
     Idea: { label: "Idea", color: "8a04ed" },
     Upcoming: { label: "Upcoming", color: "0C1565" },
@@ -559,8 +470,7 @@ async function readReadme(path: string): Promise<[Error, null] | [null, string]>
     const content = await readFile(path, "utf-8");
     return [null, content];
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return [new Error(message), null];
+    return [new Error(extractErrorMessage(error)), null];
   }
 }
 
@@ -574,8 +484,7 @@ async function writeReadme(path: string, content: string): Promise<[Error, null]
     await writeFile(path, content);
     return [null, undefined];
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return [new Error(message), null];
+    return [new Error(extractErrorMessage(error)), null];
   }
 }
 
@@ -584,7 +493,7 @@ async function writeReadme(path: string, content: string): Promise<[Error, null]
  *
  * @private
  */
-function replaceTableContent(readme: string, table: string): [Error, null] | [null, string] {
+export function replaceTableContent(readme: string, table: string): [Error, null] | [null, string] {
   const startIdx = readme.indexOf(TARGET_START);
   const endIdx = readme.indexOf(TARGET_END);
 
@@ -611,18 +520,21 @@ function replaceTableContent(readme: string, table: string): [Error, null] | [nu
  *
  * @private
  */
-function buildDiffChanges(items: readonly RoadmapItem[]): readonly DiffChange[] {
-  const changes: DiffChange[] = [];
+export function buildDiffChanges(items: readonly RoadmapItem[]): readonly DiffChange[] {
+  return items.map((item) => {
+    const assigneesText = formatAssigneesText(item.assignees);
+    return { type: "modify" as const, label: item.title, detail: `${item.status}${assigneesText}` };
+  });
+}
 
-  for (const item of items) {
-    const assigneesText =
-      item.assignees.length > 0 ? ` (${item.assignees.map((a) => `@${a.login}`).join(", ")})` : "";
-    changes.push({
-      type: "modify",
-      label: item.title,
-      detail: `${item.status}${assigneesText}`,
-    });
+/**
+ * Formats assignee logins into a parenthesized display string.
+ *
+ * @private
+ */
+function formatAssigneesText(assignees: readonly Assignee[]): string {
+  if (assignees.length === 0) {
+    return "";
   }
-
-  return changes;
+  return ` (${assignees.map((a) => `@${a.login}`).join(", ")})`;
 }
