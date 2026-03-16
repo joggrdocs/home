@@ -1,4 +1,4 @@
-name: Update README Roadmap
+name: sync-readme
 
 on:
   schedule:
@@ -11,7 +11,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  update-readme:
+  sync-readme:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -31,7 +31,7 @@ jobs:
       - name: Run readme update script
         run: pnpm lauf run readme --yes
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
 
       - name: Check for changes
         id: git-check
