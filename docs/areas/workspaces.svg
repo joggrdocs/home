@@ -27,7 +27,7 @@
 
   <!-- Title -->
   <text class="text brand" font-size="14" x="560" y="62" text-anchor="middle">jog workspace</text>
-  <text class="text dim" font-size="12" x="560" y="80" text-anchor="middle">spin up AI-ready dev environments anywhere</text>
+  <text class="text dim" font-size="12" x="560" y="80" text-anchor="middle">create, manage, and attach to isolated dev environments</text>
 
   <!-- Horizontal divider -->
   <line x1="16" y1="96" x2="1104" y2="96" stroke="#313244" stroke-width="1" />
@@ -38,7 +38,7 @@
   <rect x="4" y="104" width="110" height="24" rx="4" ry="4" fill="#181825" />
   <text class="tab" x="14" y="120">containerized</text>
 
-  <text class="code" x="18" y="152"><tspan class="prompt">~</tspan><tspan class="dim"> $ </tspan><tspan class="tx">jog workspace up</tspan><tspan class="brand"> --container</tspan></text>
+  <text class="code" x="18" y="152"><tspan class="prompt">~</tspan><tspan class="dim"> $ </tspan><tspan class="tx">jog workspace create</tspan><tspan class="brand"> --container</tspan></text>
   <text class="code" x="18" y="176"><tspan class="dim">  Resolving workspace config...</tspan></text>
   <text class="code" x="18" y="198" xml:space="preserve"><tspan class="st">  &#x2713;</tspan><tspan class="tx"> Found .joggr/workspace.yml</tspan></text>
   <text class="code" x="18" y="214" xml:space="preserve"><tspan class="st">  &#x2713;</tspan><tspan class="tx"> Pulled image </tspan><tspan class="fn">joggr/workspace:latest</tspan></text>
@@ -65,10 +65,10 @@
   <rect x="564" y="104" width="80" height="24" rx="4" ry="4" fill="#181825" />
   <text class="tab" x="578" y="120">remote</text>
 
-  <text class="code" x="578" y="152"><tspan class="prompt">~</tspan><tspan class="dim"> $ </tspan><tspan class="tx">jog workspace up</tspan><tspan class="brand"> --remote</tspan></text>
+  <text class="code" x="578" y="152"><tspan class="prompt">~</tspan><tspan class="dim"> $ </tspan><tspan class="tx">jog workspace create</tspan><tspan class="brand"> --remote</tspan></text>
   <text class="code" x="578" y="176"><tspan class="dim">  Resolving workspace config...</tspan></text>
   <text class="code" x="578" y="198" xml:space="preserve"><tspan class="st">  &#x2713;</tspan><tspan class="tx"> Found .joggr/workspace.yml</tspan></text>
-  <text class="code" x="578" y="214" xml:space="preserve"><tspan class="st">  &#x2713;</tspan><tspan class="tx"> Authenticated with Joggr Cloud</tspan></text>
+  <text class="code" x="578" y="214" xml:space="preserve"><tspan class="st">  &#x2713;</tspan><tspan class="tx"> Authenticated with joggr.gg</tspan></text>
 
   <text class="code" x="578" y="238"><tspan class="dim">  Provisioning remote instance...</tspan></text>
   <text class="code" x="578" y="260" xml:space="preserve"><tspan class="st">  &#x2713;</tspan><tspan class="tx"> Region </tspan><tspan class="fn">us-east-1</tspan><tspan class="dim"> (auto-detected)</tspan></text>
@@ -81,11 +81,11 @@
   <text class="code" x="578" y="370" xml:space="preserve"><tspan class="st">  &#x2713;</tspan><tspan class="tx"> db:migrate </tspan><tspan class="dim">(0.5s)</tspan></text>
   <text class="code" x="578" y="386" xml:space="preserve"><tspan class="st">  &#x2713;</tspan><tspan class="tx"> seed:dev </tspan><tspan class="dim">(0.9s)</tspan></text>
 
-  <text class="code" x="578" y="414"><tspan class="peach">  &#x25CF;</tspan><tspan class="tx"> Remote </tspan><tspan class="st">running</tspan><tspan class="dim"> (ssh://jog-xyz789.joggr.cloud)</tspan></text>
-  <text class="code" x="578" y="434" xml:space="preserve"><tspan class="dim">    url: </tspan><tspan class="fn">https://jog-xyz789.joggr.cloud</tspan></text>
+  <text class="code" x="578" y="414"><tspan class="peach">  &#x25CF;</tspan><tspan class="tx"> Remote </tspan><tspan class="st">running</tspan><tspan class="dim"> (ssh://jog-xyz789.joggr.gg)</tspan></text>
+  <text class="code" x="578" y="434" xml:space="preserve"><tspan class="dim">    url: </tspan><tspan class="fn">https://jog-xyz789.joggr.gg</tspan></text>
   <text class="code" x="578" y="454" xml:space="preserve"><tspan class="dim">    agents: </tspan><tspan class="tx">claude-code, cursor</tspan></text>
 
-  <text class="code" x="578" y="482"><tspan class="dim">  Workspace ready </tspan><tspan class="fn">&#x2192;</tspan><tspan class="tx"> jog workspace ssh</tspan></text>
+  <text class="code" x="578" y="482"><tspan class="dim">  Workspace ready </tspan><tspan class="fn">&#x2192;</tspan><tspan class="tx"> jog workspace attach</tspan></text>
   <text class="code" x="578" y="504"><tspan class="prompt">~</tspan><tspan class="dim"> $ </tspan><tspan class="tx">&#x2588;</tspan></text>
 
 </svg>
