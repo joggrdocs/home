@@ -54,6 +54,9 @@ export interface StatusBadge {
 
 export default lauf({
   description: "Updates README.md roadmap table from GitHub Projects",
+  env: {
+    GH_TOKEN: process.env.GH_TOKEN ?? "",
+  },
   args: {
     verbose: z.boolean().default(false).describe("Enable verbose logging"),
     "dry-run": z.boolean().default(false).describe("Preview changes without writing"),

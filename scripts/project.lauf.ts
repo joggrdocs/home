@@ -50,6 +50,9 @@ export interface ViewDriftEntry {
 
 export default lauf({
   description: "Syncs GitHub Project v2 configuration",
+  env: {
+    GH_TOKEN: process.env.GH_TOKEN ?? "",
+  },
   args: {
     verbose: z.boolean().default(false).describe("Enable verbose logging"),
     "dry-run": z.boolean().default(false).describe("Preview changes without applying"),
