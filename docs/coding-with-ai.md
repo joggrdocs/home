@@ -30,7 +30,7 @@ AI tools handle the middle part well. They don't give you much for the upstream 
 
 ## What you end up building yourself
 
-To get AI coding working reliably, you end up building a surprising amount of supporting infrastructure — and then maintaining it as your codebase evolves. Ask us how we know.
+To get AI coding working reliably, you end up building a surprising amount of supporting infrastructure — and then maintaining it as your codebase evolves. Ask us how we know :)
 
 ### Planning and context
 
