@@ -10,14 +10,14 @@
 
 </div>
 
-When you first use Claude Code or Cursor, it feels like a superpower. Features that took a day get scaffolded in minutes. You start thinking: *this changes everything.*
+When you first start using Claude Code or Cursor, it's genuinely impressive. Features that took a day get scaffolded in minutes.
 
-And it does — just not in the way you expect. Within a few weeks, you notice where your time actually goes:
+But after a few weeks, you start noticing where your time actually goes:
 
 - Planning what to feed the model so it has enough context to do the job right
-- Reviewing and fixing the output because it doesn't match how your team writes code
+- Reviewing and fixing output that technically works but doesn't follow your team's patterns, conventions, or architecture
 
-The code generation itself is fast. Everything around it is not.
+Generating code is quick. It's everything around it that takes the real time.
 
 ## The bottleneck has moved
 
@@ -26,11 +26,11 @@ The bottleneck used to be writing code. Now it's everything else — planning th
 - **Upstream** — decomposing features, gathering context, and designing the approach so the model doesn't hallucinate or go off-track
 - **Downstream** — reviewing generated code, catching convention violations, validating behavior, and integrating it into the existing codebase
 
-AI tools are great at the middle part. They don't give you a system for the parts where you actually spend your time.
+AI tools handle the middle part well. But they don't give you anything for the upstream or downstream — the parts where you're actually spending your time.
 
 ## What you end up building yourself
 
-To make AI coding work reliably, you end up building a surprising amount of supporting infrastructure — and maintaining it as your codebase evolves.
+To get AI coding working reliably, you end up building a lot of supporting infrastructure — and then maintaining it as your codebase evolves.
 
 ### Planning and context
 
@@ -87,9 +87,9 @@ To make AI coding work reliably, you end up building a surprising amount of supp
 
 ### Review and validation
 
-- **Code quality** — Linting, tests, and checks have to run, and you still spend significant time reviewing AI-generated code that doesn't follow your conventions.
+- **Code quality** — Linting, tests, and checks still have to pass, and you end up spending real time reviewing AI-generated code that doesn't follow your conventions.
 
-- **Review workflow** — You're jumping between your editor and AI tools, copying context back and forth, coordinating feedback manually. It's fragmented, and it doesn't scale as the volume of generated code increases.
+- **Review workflow** — You're jumping between your editor and AI tools, copying context back and forth, coordinating feedback by hand. The whole thing is fragmented, and it gets worse as the volume of generated code goes up.
 
 <details>
 <summary>How Joggr helps</summary>
@@ -103,7 +103,7 @@ To make AI coding work reliably, you end up building a surprising amount of supp
 
 ## It keeps growing
 
-None of this is one-time setup. It all has to stay in sync as your codebase evolves, work together across multiple steps without drifting, and scale across every repo your team touches.
+None of this is one-time setup. It all has to stay in sync as your codebase evolves, hold together across multi-step workflows without drifting, and scale across every repo your team touches.
 
 If you try to solve it with custom skills or scripts, you hit real limits:
 
@@ -113,14 +113,14 @@ If you try to solve it with custom skills or scripts, you hit real limits:
 
 And that's just one repo. Multiply it across a team and you're maintaining a small internal platform.
 
-At that point, you're not just *using* AI to code — you're building and maintaining infrastructure to make AI code reliably. You've become the platform team for your own AI tools.
+At that point, you're not just *using* AI to code — you're maintaining a platform to make AI code reliably. You've become the platform team for your own AI tools.
 
 ## Where Joggr fits
 
-Before CI/CD platforms existed, every team hand-rolled their own build-test-deploy process. Jenkins jobs, bash scripts, cron tasks, custom webhooks — it worked, but you were spending real engineering time maintaining infrastructure that wasn't your product. Then tools like GitHub Actions and GitLab CI standardized that entire layer. You declared what you wanted and stopped maintaining the machinery.
+Before CI/CD platforms existed, every team hand-rolled their own build-test-deploy process. Jenkins jobs, bash scripts, cron tasks, custom webhooks — it worked, but you were spending real engineering time maintaining infrastructure that had nothing to do with your product. Then tools like GitHub Actions and GitLab CI standardized that entire layer. You declared what you wanted and stopped maintaining the machinery.
 
-AI development is at that same inflection point — and that's where Joggr comes in.
+AI development is at that same inflection point.
 
-**Joggr is the context engineering toolkit for developing with AI agents.** It handles the setup, context, coordination, and ongoing maintenance required to make AI coding actually work — so your team can focus on shipping product instead of maintaining the scaffolding around your AI tools.
+**Joggr is the context engineering toolkit for developing with AI agents.** It handles the setup, context, coordination, and ongoing maintenance that make AI coding actually work — so your team stops building internal tooling and gets back to building the product.
 
 [![Roadmap](https://img.shields.io/badge/Roadmap-8B5CF6?style=for-the-badge&logo=googlemaps&logoColor=white)](https://github.com/orgs/joggrdocs/projects/9)
