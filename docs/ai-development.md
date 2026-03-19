@@ -1,124 +1,116 @@
-# AI Development Is Changing — And Where It Breaks
+# How you code has changed
 
-When teams start using tools like Claude or Cursor, the initial experience feels incredible.
+When teams start using tools like Claude or Cursor, the initial experience feels incredible. Features that used to take hours can be scaffolded in minutes.
 
-You can generate code extremely quickly. Features that used to take hours or days to write can now be scaffolded in minutes.
+But very quickly, something shifts in how you work... you spend most of your time trying to either: 
 
-But very quickly, something shifts.
+- help the LLM by planning & feeding it context
+- fixing the LLMs outputs because of bugs or poorly written code
+
+![What AI Coding is Really like](./.assets/reviews.png)
 
 ## The Bottleneck Has Moved
 
-The bottleneck is no longer writing code.
+The bottleneck is ~~writing~~ planning & reviewing code. As a dev the majority of your time is now spent:
 
-Your time moves to two places:
-- **Upstream → planning and designing the feature**
-- **Downstream → reviewing, validating, and integrating the generated code**
+- **Upstream** — planning and designing the feature
+- **Downstream** — reviewing, validating, and integrating the generated code
 
-And this is where teams start to run into problems.
+While AI tools are great at generating code, they don't give you a system for handling the parts of the workflow where most of your time is spent.
 
-Because while tools like Claude and Cursor are great at generating code, they don’t give you a system for handling the parts of the workflow where most of your time now goes—planning and review.
+## What Breaks as You Scale
 
----
+To make AI coding work reliably, you end up building and maintaining a surprising amount of infrastructure.
 
-## What Actually Breaks as You Scale AI Development
+### Planning and Context
 
-To make AI coding work reliably for real features, you end up building and maintaining a lot of infrastructure:
+- **Work breakdown** — You have to manually decompose features into steps and decide what code, docs, and prior decisions to feed into each step. This becomes especially painful for long, complex features where the model loses context or makes incorrect assumptions.
 
-### Planning & Context (where more time now goes)
+- **Agent memory** — Instruction files only go so far. In practice, you're constantly "teaching" the model: stop using X, we use Y now. That means creating docs, updating rules, and modifying instruction files every time decisions change — and none of it transfers across tools or scales across a team.
 
-- **Work breakdown + context handling**  
-  You have to manually break features into steps and continuously decide what code, docs, and prior decisions to pass into each step so the model doesn’t lose context or make incorrect assumptions—this becomes especially painful for long, complex features  
+<details>
+<summary>How Joggr solves this</summary>
 
-- **Agent Memory**  
-  Instruction files only go so far; in practice, you’re constantly having to “train” the model over time (e.g. stop using X, we use Y instead). That means creating docs, updating rules, and modifying instruction files every time new context or decisions emerge. Even when tools offer memory, it’s often user-specific and tied to a single provider, so it doesn’t scale across a team or transfer if you switch tools.  
-  As a result, you have no reliable way to maintain and share evolving context—persistent memories, internal docs, codebase knowledge, prior decisions, and external references—without manually managing it all yourself  
+- [GG Workflow](https://github.com/joggrdocs/home/issues/24) — a structured workflow for planning, executing, and reviewing AI-driven features
+- [Context MCP: Internal](https://github.com/joggrdocs/home/issues/16) — aggregates repo structure, docs, and project metadata into structured context for agents
+- [Context MCP: External](https://github.com/joggrdocs/home/issues/15) — aggregates external documentation sources into a single search endpoint
 
----
+</details>
 
-### Understanding the Codebase
+### Codebase Understanding
 
-- **Documentation**  
-  You have to create and keep architecture and system docs up to date so the model understands how your codebase works  
+- **Documentation** — Architecture and system docs must stay current so the model understands how your codebase works.
 
-- **Instruction files (repo-wide + subdirectory-level)**  
-  You have to define and maintain how the model behaves across different parts of the repo as things evolve  
+- **Instruction files** — Repo-wide and subdirectory-level rules must be defined and maintained as the codebase evolves.
 
-- **Coding standards**  
-  You have to encode and update how code should be written so outputs stay consistent with your repo  
+- **Coding standards** — How code should be written must be encoded and kept consistent with your repo.
 
----
+<details>
+<summary>How Joggr solves this</summary>
 
-### Execution & Control
+- [Coding Standards Generation](https://github.com/joggrdocs/home/issues/12) — generate codebase-aware standards docs based on detected patterns
+- [Coding Standards Rules](https://github.com/joggrdocs/home/issues/14) — generate and update rules that guide agents to follow your standards
+- [Coding Agent Setup CLI](https://github.com/joggrdocs/home/issues/6) — guided setup for instruction and config files
+- [Documentation Doctor: Missing](https://github.com/joggrdocs/home/issues/19) — detects missing core documentation
+- [Documentation Doctor: Drift](https://github.com/joggrdocs/home/issues/18) — identifies docs that are outdated or inconsistent with the codebase
 
-- **Configs & settings**  
-  You have to configure and continuously adjust permissions, tools, and environments as your setup changes. And importantly, this isn’t just about configuration—sometimes you need to *prevent* the model from doing the wrong thing (e.g. making unsafe commits or taking actions it shouldn’t). That means wiring up enforcement through permissions, hooks, and environment controls, and keeping all of that correctly configured over time  
+</details>
 
-- **Agent rules**  
-  You have to define and maintain rules that enforce how the model writes and behaves across different parts of the repo. In practice, instructions and skills aren’t always enough—the model won’t reliably follow them—so you end up needing mechanisms to *force* correct behavior (via rules, hooks, and constraints). This becomes another layer of infrastructure you have to build and maintain  
+### Execution and Control
 
-- **Agent environments**  
-  Once agents move beyond suggesting code and start actually executing work (editing files, running commands, interacting with services), you can’t safely run them directly against your codebase or infrastructure.  
-  You’re now giving them real capabilities, but you still can’t fully trust them. That creates both security and control problems, so you need isolated environments to contain their behavior.  
-  In practice, this means manually building and maintaining sandboxing, network controls, credential scoping, and audit logging—and keeping all of it working as your stack and team evolve  
+- **Configs and permissions** — You have to configure tools, permissions, and environments — and importantly, *prevent* the model from doing the wrong thing (unsafe commits, unauthorized actions) through hooks and enforcement layers.
 
----
+- **Agent rules** — Instructions and skills aren't always enough. The model won't reliably follow them, so you need mechanisms to *force* correct behavior — another layer of infrastructure to maintain.
 
-### Review & Validation (where a huge amount of time now goes)
+- **Agent environments** — Once agents execute real work (editing files, running commands, interacting with services), you need isolated environments with sandboxing, network controls, credential scoping, and audit logging.
 
-- **Code quality + validation workflow**  
-  You have to run linting, tests, and checks, and spend significant time reviewing and fixing AI-generated code when it doesn’t follow your standards or misses requirements  
+<details>
+<summary>How Joggr solves this</summary>
 
-- **Code + plan review workflow**  
-  You have to review large volumes of generated code and plans locally in your IDE, often across many files.  
-  In practice, this turns into constantly jumping between your editor and AI tools, copying and pasting code and context back and forth, and trying to coordinate feedback manually.  
-  It’s a fragmented and painful UX that doesn’t scale as the volume of AI-generated work increases  
+- [Coding Agent Setup Doctor](https://github.com/joggrdocs/home/issues/7) — analyzes repos for misconfigured AI development setup
+- [Coding Agent Setup Remediation](https://github.com/joggrdocs/home/issues/9) — auto-generates fixes for doctor findings
+- [Coding Agent Quality Checks](https://github.com/joggrdocs/home/issues/5) — installs and maintains hooks that validate agent-touched code
+- [Workspaces: Containers](https://github.com/joggrdocs/home/issues/26) — isolated container environments for safer agent execution
+- [Secure Data Access Layer](https://github.com/joggrdocs/home/issues/30) — scoped, permission-bound access to external systems
 
----
+</details>
 
-## This Isn’t a One-Time Setup
+### Review and Validation
 
-None of this is a one-time setup—it all has to stay in sync as your codebase evolves.
+- **Code quality** — Linting, tests, and checks must run, and you spend significant time reviewing and fixing AI-generated code that doesn't follow your standards.
 
-All of these pieces have to work together across multiple steps without drifting or breaking.
+- **Review workflow** — You're constantly jumping between your editor and AI tools, copying context back and forth, coordinating feedback manually. It's a fragmented UX that doesn't scale as AI-generated volume increases.
 
-And importantly, this entire system exists because of the shift in where time is spent.
+<details>
+<summary>How Joggr solves this</summary>
 
-When code generation becomes fast, the coordination layer around planning, context, execution control, and review becomes the real bottleneck—and that’s the part you’re now responsible for building.
+- [GG Local Code Review](https://github.com/joggrdocs/home/issues/22) — web UI for viewing, annotating, and approving generated code locally
+- [GG Plan Review](https://github.com/joggrdocs/home/issues/23) — web UI for viewing, annotating, and approving workflow plans
+- [Coding Standards PR Check](https://github.com/joggrdocs/home/issues/13) — detects stale standards docs and rules on every PR
+- [Coding Agent Setup PR Check](https://github.com/joggrdocs/home/issues/8) — flags outdated agent configs on every PR
 
----
+</details>
 
-## Why This Is Hard to Solve with Existing Tools
+## This Compounds Over Time
 
-If you try to do some of this with “skills,” you run into a few real constraints:
+None of this is one-time setup. It all has to stay in sync as your codebase evolves, work together across multiple steps without drifting, and scale across your team.
 
-- You end up having to build and maintain a large number of them (~50+ for a fully setup repo), just to cover the different parts of this system  
-- They behave differently across providers (Claude, Cursor, etc.), so if you build this system yourself, you’re effectively tying it to a specific tool. If a better model or tool comes along, switching means reworking large parts of your setup—or you stay on a suboptimal tool because the cost of switching is too high  
-- And some parts of this aren’t solvable with skills at all—you’d have to build custom tooling (e.g. orchestrating multi-step feature development or building a usable code/plan review workflow)  
+And if you try to solve it with skills or custom scripts, you hit real constraints:
 
-And this is just for a single repo.
+- You need ~50+ of them for a fully configured repo
+- They behave differently across providers (Claude, Cursor, etc.), locking you into a specific tool
+- Some parts aren't solvable with skills at all — orchestrating multi-step features or building a usable review workflow requires custom tooling
 
-To scale this across a team, you have to replicate and maintain this entire system everywhere. And as the underlying tools change, you have to keep updating how everything works.
-
----
+This is just for a single repo. Scaling across a team means replicating and maintaining this entire system everywhere.
 
 ## What This Actually Becomes
 
-At that point, you’re not just using AI.
+At that point, you're not just using AI — you're building and maintaining internal infrastructure to make AI work reliably in your codebase.
 
-You’re building and maintaining an internal system to make AI work reliably in your codebase—especially to handle planning, execution control, and review at scale.
-
-This is infrastructure for AI-driven development—similar to how teams used to stitch together scripts for testing and deployment before tools like GitHub Actions or CircleCI standardized and automated that layer.
-
----
+This is similar to how teams used to stitch together scripts for testing and deployment before tools like GitHub Actions standardized that layer.
 
 ## Where Joggr Fits
 
-Joggr is that system for AI coding.
+Joggr is the context engineering toolkit for developing with AI agents.
 
-It handles the setup, coordination, and ongoing maintenance required to make AI development actually work—especially in the parts of the workflow where your time now goes:
-- planning  
-- context management  
-- execution control  
-- review  
-
-Instead of every team building and maintaining this themselves, Joggr provides it out of the box.
+It handles the setup, coordination, and ongoing maintenance required to make AI development work — instead of every team building this themselves, Joggr provides it out of the box.
