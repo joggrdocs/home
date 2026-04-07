@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://joggr.io/schemas/jog-config.json",
+  "title": "Joggr Configuration",
+  "description": "Configuration for Joggr CLI and tools in jog.config.{ts,mts,json,jsonc,yaml} files.",
+  "type": "object",
+  "properties": {
+    "sandbox": {
+      "type": "object",
+      "description": "Sandbox environment configuration.",
+      "properties": {
+        "local": {
+          "type": "object",
+          "description": "Local git-worktree sandbox configuration.",
+          "properties": {
+            "copy": {
+              "type": "array",
+              "description": "Glob patterns for files/directories to copy to new worktrees.",
+              "items": {
+                "type": "string"
+              }
+            },
+            "run": {
+              "type": "array",
+              "description": "Commands to run in order after worktree creation.",
+              "items": {
+                "type": "string"
+              }
+            },
+            "command": {
+              "type": "string",
+              "description": "Command to launch after sandbox setup completes (e.g. \"claude\", \"code .\", \"zsh\")."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
