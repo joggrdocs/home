@@ -1,41 +1,93 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://joggr.io/schemas/jog-config.json",
+  "$id": "https://raw.githubusercontent.com/joggrdocs/home/refs/heads/main/schema.json",
   "title": "Joggr Configuration",
   "description": "Configuration for Joggr CLI and tools in jog.config.{ts,mts,json,jsonc,yaml} files.",
   "type": "object",
   "properties": {
     "sandbox": {
       "type": "object",
-      "description": "Sandbox environment configuration.",
       "properties": {
         "local": {
           "type": "object",
-          "description": "Local git-worktree sandbox configuration.",
           "properties": {
             "copy": {
               "type": "array",
-              "description": "Glob patterns for files/directories to copy to new worktrees.",
               "items": {
                 "type": "string"
-              }
+              },
+              "description": "Glob patterns for files/directories to copy to new worktrees."
             },
             "run": {
               "type": "array",
-              "description": "Commands to run in order after worktree creation.",
               "items": {
                 "type": "string"
-              }
+              },
+              "description": "Commands to run in order after worktree creation."
             },
             "command": {
               "type": "string",
               "description": "Command to launch after sandbox setup completes (e.g. \"claude\", \"code .\", \"zsh\")."
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "description": "Local git-worktree sandbox configuration."
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "description": "Sandbox environment configuration."
+    },
+    "notify": {
+      "type": "object",
+      "properties": {
+        "sounds": {
+          "default": [
+            "chime"
+          ],
+          "description": "Sounds to play when the agent stops — picks one at random.",
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "afrobeats",
+              "barbershop",
+              "country",
+              "drill",
+              "edm",
+              "folk",
+              "metal",
+              "reggae",
+              "ping",
+              "chime",
+              "success-ding",
+              "victory",
+              "achievement",
+              "fanfare",
+              "rush"
+            ]
+          }
+        },
+        "enable": {
+          "default": true,
+          "description": "Enable or disable sound notifications.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Notification sound configuration."
+    },
+    "hooks": {
+      "type": "object",
+      "properties": {
+        "plan_review": {
+          "default": true,
+          "description": "Enable the plan review hook — opens a browser UI for reviewing AI plans before they execute.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Hook feature toggles."
     }
   },
   "additionalProperties": false
