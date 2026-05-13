@@ -24,9 +24,25 @@ export async function fileExists(path) {
   }
 }
 
-/** True if `bin` is on PATH. */
+/**
+ * True if `bin` is on the user's real PATH.
+ *
+ * `node_modules/.bin/` entries are filtered out before the check — the
+ * status script is meant to report on globally-installed binaries, and
+ * `npm run` would otherwise inject the local project's `.bin/` and
+ * false-positive when run from inside any repo that has `@joggr/cli`
+ * as a dependency.
+ */
 export function hasBinary(bin) {
-  return spawnSync('sh', ['-c', 'command -v "$1"', '_', bin], { stdio: 'ignore' }).status === 0
+  const cleanPath = (process.env.PATH ?? '')
+    .split(':')
+    .filter((p) => p && !p.includes('/node_modules/.bin'))
+    .join(':')
+  const result = spawnSync('sh', ['-c', 'command -v "$1"', '_', bin], {
+    stdio: 'ignore',
+    env: { ...process.env, PATH: cleanPath },
+  })
+  return result.status === 0
 }
 
 /** Move `src` to `dst` via `rename`. Throws on any error — happy path only. */
