@@ -76,7 +76,9 @@ async function main() {
   console.log(`Scan root: ${scanRoot}`)
   console.log()
 
-  const git = inspectGitTree(scanRoot)
+  // Exclude the tool's own directory from the dirty check — install.sh
+  // drops it inside the user's repo as an untracked artifact.
+  const git = inspectGitTree(scanRoot, { skipPaths: new Set([SCRIPT_DIR]) })
   if (git.isRepo && git.error) {
     return giveUp(`git status failed at ${scanRoot}: ${git.error}`)
   }

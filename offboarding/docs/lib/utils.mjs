@@ -130,8 +130,12 @@ export async function findGitRoot(startDir) {
 /**
  * Inspect a directory for uncommitted git changes. Non-throwing —
  * callers decide what to do with the result.
+ *
+ * `opts.skipPaths` excludes specific absolute paths from the dirty
+ * check. Used to ignore the offboarding tool's own directory when it
+ * lives inside the user's repo as an untracked artifact of `install.sh`.
  */
-export function inspectGitTree(gitRoot) {
+export function inspectGitTree(gitRoot, opts = {}) {
   const inside = spawnSync('git', ['-C', gitRoot, 'rev-parse', '--is-inside-work-tree'], {
     encoding: 'utf-8',
   })
@@ -153,7 +157,38 @@ export function inspectGitTree(gitRoot) {
   }
   const text = (result.stdout ?? '').trimEnd()
   if (text === '') return { isRepo: true, dirty: false, lines: [], error: null }
-  return { isRepo: true, dirty: true, lines: text.split('\n').slice(0, 20), error: null }
+
+  const skipPaths = opts.skipPaths ?? new Set()
+  const filtered = text.split('\n').filter((line) => !lineHitsSkipPath(line, gitRoot, skipPaths))
+  if (filtered.length === 0) return { isRepo: true, dirty: false, lines: [], error: null }
+  return { isRepo: true, dirty: true, lines: filtered.slice(0, 20), error: null }
+}
+
+/**
+ * True when a `git status --porcelain` line refers to a path that lives
+ * inside one of the `skipPaths` directories. Porcelain v1 format:
+ *
+ *   XY <path>
+ *   XY <old> -> <new>     (renames; take <new>)
+ *
+ * Untracked directories come back with a trailing `/`. Paths with
+ * special characters get C-escaped and wrapped in quotes — we strip the
+ * surrounding quotes but don't fully unescape, which is good enough for
+ * the typical `joggr-docs-offboarding/` case.
+ *
+ * @private
+ */
+function lineHitsSkipPath(line, gitRoot, skipPaths) {
+  if (skipPaths.size === 0) return false
+  let path = line.slice(3)
+  if (path.includes(' -> ')) path = path.split(' -> ').pop()
+  if (path.startsWith('"') && path.endsWith('"')) path = path.slice(1, -1)
+  path = path.replace(/\/$/, '')
+  const abs = resolve(gitRoot, path)
+  for (const skip of skipPaths) {
+    if (abs === skip || abs.startsWith(skip + sep)) return true
+  }
+  return false
 }
 
 /**
