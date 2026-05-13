@@ -1,0 +1,16 @@
+{
+  "name": "joggr-docs-offboarding",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scripts to remove Joggr-managed comments from your markdown docs, with per-file backups and restore.",
+  "license": "SEE LICENSE IN ../LICENSE.md",
+  "type": "module",
+  "scripts": {
+    "offboard": "node offboard.mjs",
+    "restore": "node restore.mjs",
+    "test": "node --test lib/__tests__/utils.test.mjs"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

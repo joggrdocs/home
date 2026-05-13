@@ -1,0 +1,17 @@
+{
+  "name": "joggr-coding-offboarding",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scripts to remove Joggr coding tooling from your machine, with restore + status.",
+  "license": "SEE LICENSE IN ../LICENSE.md",
+  "type": "module",
+  "scripts": {
+    "offboard": "node offboard.mjs",
+    "status": "node status.mjs",
+    "restore": "node restore.mjs",
+    "test": "node --test lib/__tests__/utils.test.mjs lib/__tests__/scripts.test.mjs"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
